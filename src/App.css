@@ -1,6 +1,19 @@
 .App {
   display: flex;
+  flex-direction: column;
   height: 100vh;
+}
+
+.header {
+  background-color: #f4f4f4;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  width: 100%;
+}
+
+.main-content {
+  display: flex;
+  flex: 1;
 }
 
 .channel-list {
