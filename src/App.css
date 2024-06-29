@@ -1,0 +1,95 @@
+.App {
+  display: flex;
+  height: 100vh;
+}
+
+.channel-list {
+  width: 20%;
+  background-color: #f4f4f4;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.channel-list h2 {
+  margin-top: 0;
+}
+
+.channel-list ul {
+  list-style: none;
+  padding: 0;
+}
+
+.channel-list li {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.channel-list li:hover {
+  background-color: #ddd;
+}
+
+.message-container {
+  width: 60%;
+  padding: 10px;
+  overflow-y: auto;
+}
+
+.message-list {
+  margin-top: 20px;
+}
+
+.message {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  cursor: pointer;
+}
+
+.message p {
+  margin: 0;
+}
+
+.message span {
+  font-size: 0.8em;
+  color: #888;
+}
+
+.search-bar {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.search-bar input {
+  flex: 1;
+  padding: 5px;
+  font-size: 1em;
+}
+
+.search-bar button {
+  padding: 5px 10px;
+  font-size: 1em;
+}
+
+.thread-container {
+  width: 20%;
+  padding: 10px;
+  border-left: 1px solid #ddd;
+  overflow-y: auto;
+}
+
+.thread {
+  margin-top: 20px;
+}
+
+.thread .message {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.thread .message p {
+  margin: 0;
+}
+
+.thread .message span {
+  font-size: 0.8em;
+  color: #888;
+}
