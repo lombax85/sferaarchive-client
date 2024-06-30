@@ -83,7 +83,7 @@
 }
 
 .thread-container {
-  width: 20%;
+  width: 40%;
   padding: 10px;
   border-left: 1px solid #ddd;
   overflow-y: auto;
@@ -105,4 +105,16 @@
 .thread .message span {
   font-size: 0.8em;
   color: #888;
+}
+
+.thread .message a {
+  color: #007BFF;
+  text-decoration: none;
+  font-size: 0.85em;
+  transition: color 0.3s ease, text-decoration 0.3s ease;
+}
+
+.thread .message a:hover {
+  color: #0056b3;
+  text-decoration: underline;
 }

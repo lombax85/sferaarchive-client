@@ -18,6 +18,7 @@ function App() {
   const [threadMessages, setThreadMessages] = useState([]);
   const [accessToken, setAccessToken] = useState(null);
   const [user, setUser] = useState(null);
+  const [username, setUserName] = useState(null);
   const [optedOut, setOptedOut] = useState(false);
   const location = useLocation();
 
@@ -43,6 +44,7 @@ function App() {
       .get(API_URL + "/whoami")
       .then((response) => { 
         setUser(response.data.user_id)
+        setUserName(response.data.username)
         setOptedOut(response.data.opted_out) 
       })
       .catch((error) => console.error("Error fetching whoami:", error));
@@ -89,8 +91,35 @@ function App() {
   return (
     <div className="App">
       <div className="header">
-        User: {user} &nbsp;
-        Opted Out: {optedOut ? "Yes" : "No"}
+        Ciao, al momento Opt Out è in beta. I post non vengono eliminati realmente dal db, ma vengono nascosti tramite softdelete.
+        Lo proviamo per un po' per vedere come si comporta il sistema. Più avanti elimineremo fisicamente i post <br /><br />
+        Tu sei: {user} - {username} &nbsp; <br />
+
+        Hai fatto OptOut?: {optedOut ? "Sì" : "No"}
+        <br /><br />
+
+        <button onClick={
+          () => {
+            // show a confirmation dialog
+            if (window.confirm("Questa azione rimuoverà tutti i tuoi post (inizialmente solo in softdelete)?")) {
+              axios.get(API_URL + "/optout")
+              .then((response) => setOptedOut(true))
+              .catch((error) => console.error("Error opting out:", error));
+            }
+          }
+        }>Opt Out</button>
+
+        <button onClick={
+          () => {
+            // show a confirmation dialog
+            if (window.confirm("Torni dei nostri?")) {
+              axios.get(API_URL + "/optin")
+              .then((response) => setOptedOut(true))
+              .catch((error) => console.error("Error opting in:", error));
+            }
+          }
+        }>Opt In</button>
+
       </div>
       <div className="main-content">
         <ChannelList channels={channels} onSelect={handleChannelSelect} />

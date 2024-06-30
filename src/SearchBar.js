@@ -10,12 +10,19 @@ function SearchBar({ setMessages }) {
       .catch(error => console.error('Error searching messages:', error));
   };
 
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
   return (
     <div className="search-bar">
       <input
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
+        onKeyDown={handleKeyDown}
         placeholder="Cerca nei messaggi..."
       />
       <button onClick={handleSearch}>Cerca</button>
