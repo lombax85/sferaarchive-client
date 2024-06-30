@@ -118,3 +118,50 @@
   color: #0056b3;
   text-decoration: underline;
 }
+
+/* Media queries for responsiveness */
+@media (max-width: 768px) {
+  .main-content {
+    flex-direction: column;
+  }
+
+  .channel-list,
+  .thread-container {
+    width: 100%;
+    border-right: none;
+    border-left: none;
+    padding: 5px;
+  }
+
+  .message-container {
+    width: 100%;
+    padding: 5px;
+  }
+
+  .search-bar {
+    flex-direction: column;
+  }
+
+  .search-bar input,
+  .search-bar button {
+    width: 100%;
+    margin-bottom: 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    font-size: 0.9em;
+    padding: 5px;
+  }
+
+  .channel-list li,
+  .message,
+  .thread .message {
+    padding: 5px;
+  }
+
+  .thread .message a {
+    font-size: 0.75em;
+  }
+}
