@@ -165,3 +165,14 @@
     font-size: 0.75em;
   }
 }
+
+.message a {
+  color: #007BFF;
+  text-decoration: none;
+  transition: color 0.3s ease, text-decoration 0.3s ease;
+}
+
+.message a:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
