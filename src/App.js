@@ -7,9 +7,10 @@ import SearchBar from "./SearchBar";
 import Thread from "./Thread";
 import { useLocation } from "react-router-dom";
 
-function App() {
-  const API_URL = "https://slack-archive.sferait.org";
+const API_URL = "https://slack-archive.sferait.org";
 
+function App() {
+  
   const [channels, setChannels] = useState([]);
   const [selectedChannel, setSelectedChannel] = useState(null);
   const [messages, setMessages] = useState([]);

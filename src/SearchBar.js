@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
+const API_URL = "https://slack-archive.sferait.org";
+
 function SearchBar({ setMessages }) {
   const [query, setQuery] = useState('');
 
   const handleSearch = () => {
-    axios.get(`/search?query=${query}`)
+    axios.get(`${API_URL}/search?query=${query}`)
       .then(response => setMessages(response.data))
       .catch(error => console.error('Error searching messages:', error));
   };
