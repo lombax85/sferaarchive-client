@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { MessageSquare, Hash, Search, ChevronDown } from 'lucide-react';
+import { MessageSquare, Hash, Search, ChevronDown, Link as LinkIcon } from 'lucide-react';
 import { useLocation } from "react-router-dom";
 
 const API_URL = "https://slack-archive.sferait.org";
@@ -201,6 +201,17 @@ function App() {
                 <div className="font-semibold">{thread.user_name}</div>
                 <div className="whitespace-pre-wrap">{thread.message}</div>
                 <div className="text-xs text-gray-500">{formatTimestamp(thread.timestamp)}</div>
+                {thread.permalink && (
+                    <a
+                      href={thread.permalink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center text-blue-500 hover:underline"
+                    >
+                      <LinkIcon size={12} className="mr-1" />
+                      Permalink
+                    </a>
+                  )}
               </div>
             ))}
           </div>
