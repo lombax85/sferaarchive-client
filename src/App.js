@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { MessageSquare, Hash, Search, ChevronDown, Link as LinkIcon } from 'lucide-react';
 import { useLocation } from "react-router-dom";
+import { marked } from 'marked';
+import parse from 'html-react-parser';
+
 
 const API_URL = "https://slack-archive.sferait.org";
 
@@ -178,7 +181,7 @@ function App() {
                 onClick={() => handleThreadSelect(message.thread_ts || message.timestamp)}
               >
                 <div className="font-semibold">{message.user_name}</div>
-                <div className="whitespace-pre-wrap">{message.message}</div>
+                <div className="whitespace-pre-wrap">{parse(marked(message.message))}</div>
                 <div className="text-xs text-gray-500">{formatTimestamp(message.timestamp)}</div>
               </div>
             ))}
@@ -199,7 +202,7 @@ function App() {
             {threadMessages.map((thread) => (
               <div key={thread.timestamp} className="mb-4">
                 <div className="font-semibold">{thread.user_name}</div>
-                <div className="whitespace-pre-wrap">{thread.message}</div>
+                <div className="whitespace-pre-wrap">{parse(marked(thread.message))}</div>
                 <div className="text-xs text-gray-500">{formatTimestamp(thread.timestamp)}</div>
                 {thread.permalink && (
                     <a
