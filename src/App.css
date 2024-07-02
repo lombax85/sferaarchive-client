@@ -1,0 +1,11 @@
+/* Aggiungi questo in un file CSS separato o in una sezione <style> nel tuo HTML */
+
+/* Override per i link all'interno del contenuto parsed */
+.parsed-content a {
+  color: #3b82f6; /* text-blue-500 in Tailwind */
+  text-decoration: none;
+}
+
+.parsed-content a:hover {
+  text-decoration: underline;
+}
