@@ -87,7 +87,7 @@ function App() {
   };
 
   const handleOptOut = () => {
-    if (window.confirm("Questa azione rimuoverà tutti i tuoi post per sempre e non sarà più possibile recuperarli (da questa interfaccia, non da Slack). Sei sicuro?")) {
+    if (window.confirm("Questa azione rimuoverà tutti i tuoi post per sempre e non sarà più possibile recuperarli (da questa interfaccia, non da Slack). Inoltre non potrai più consultare gli archivi. Sei sicuro?")) {
       axios.get(API_URL + "/optout")
         .then(() => setOptedOut(true))
         .catch(error => console.error("Error opting out:", error));
@@ -113,7 +113,7 @@ function App() {
       {/* User info bar */}
       <div className="bg-purple-700 text-white p-4">
         <div>Utente: {username} (ID: {user})</div>
-        <div>Opt-out: {optedOut ? "Sì" : "No"}</div>
+        <div>Opt-out: {optedOut ? "Hai effettuato Opt-out. Da questo momento non puoi più consultare gli archivi." : "No"}</div>
         <button 
           onClick={handleOptOut}
           className="bg-purple-900 hover:bg-purple-800 text-white font-bold py-2 px-4 rounded mt-2"
