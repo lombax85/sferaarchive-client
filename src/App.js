@@ -87,18 +87,10 @@ function App() {
   };
 
   const handleOptOut = () => {
-    if (window.confirm("Questa azione rimuoverà tutti i tuoi post (inizialmente solo in softdelete)?")) {
+    if (window.confirm("Questa azione rimuoverà tutti i tuoi post per sempre e non sarà più possibile recuperarli (da questa interfaccia, non da Slack). Sei sicuro?")) {
       axios.get(API_URL + "/optout")
         .then(() => setOptedOut(true))
         .catch(error => console.error("Error opting out:", error));
-    }
-  };
-
-  const handleOptIn = () => {
-    if (window.confirm("Torni dei nostri?")) {
-      axios.get(API_URL + "/optin")
-        .then(() => setOptedOut(false))
-        .catch(error => console.error("Error opting in:", error));
     }
   };
 
@@ -123,10 +115,10 @@ function App() {
         <div>Utente: {username} (ID: {user})</div>
         <div>Opt-out: {optedOut ? "Sì" : "No"}</div>
         <button 
-          onClick={optedOut ? handleOptIn : handleOptOut}
+          onClick={handleOptOut}
           className="bg-purple-900 hover:bg-purple-800 text-white font-bold py-2 px-4 rounded mt-2"
         >
-          {optedOut ? "Opt In" : "Opt Out"}
+          Opt Out
         </button>
       </div>
 
