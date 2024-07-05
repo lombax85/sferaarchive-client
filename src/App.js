@@ -183,7 +183,7 @@ function App() {
 
         {/* Thread sidebar */}
         {selectedThread && (
-          <div className="w-80 bg-white border-l p-4 overflow-y-auto">
+          <div className="w-1/3 bg-white border-l p-4 overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold">Thread</h3>
               <ChevronDown
