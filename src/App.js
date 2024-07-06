@@ -1,15 +1,27 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { MessageSquare, Hash, Search, ChevronDown, Link as LinkIcon } from 'lucide-react';
+import {
+  MessageSquare,
+  Hash,
+  Search,
+  ChevronDown,
+  Link as LinkIcon,
+  Calendar,
+  User,
+} from "lucide-react";
 import { useLocation } from "react-router-dom";
-import { marked } from 'marked';
-import parse from 'html-react-parser';
-import './App.css';
-
+import { marked } from "marked";
+import parse from "html-react-parser";
+import "./App.css";
 
 const API_URL = "https://slack-archive.sferait.org";
 
 function App() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchUserName, setSearchUserName] = useState("");
+  const [searchChannelName, setSearchChannelName] = useState("");
+  const [searchStartTime, setSearchStartTime] = useState("");
+  const [searchEndTime, setSearchEndTime] = useState("");
   const [channels, setChannels] = useState([]);
   const [selectedChannel, setSelectedChannel] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -20,7 +32,6 @@ function App() {
   const [user, setUser] = useState(null);
   const [username, setUserName] = useState(null);
   const [optedOut, setOptedOut] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const location = useLocation();
 
   useEffect(() => {
@@ -36,17 +47,19 @@ function App() {
 
   useEffect(() => {
     if (accessToken) {
-      axios.get(API_URL + "/channels")
-        .then(response => setChannels(response.data))
-        .catch(error => console.error("Error fetching channels:", error));
+      axios
+        .get(API_URL + "/channels")
+        .then((response) => setChannels(response.data))
+        .catch((error) => console.error("Error fetching channels:", error));
 
-      axios.get(API_URL + "/whoami")
-        .then(response => {
+      axios
+        .get(API_URL + "/whoami")
+        .then((response) => {
           setUser(response.data.user_id);
           setUserName(response.data.username);
           setOptedOut(response.data.opted_out);
         })
-        .catch(error => console.error("Error fetching whoami:", error));
+        .catch((error) => console.error("Error fetching whoami:", error));
     }
   }, [accessToken]);
 
@@ -57,9 +70,12 @@ function App() {
   }, [selectedChannel, offset]);
 
   const fetchMessages = () => {
-    axios.get(`${API_URL}/messages/${selectedChannel}?offset=${offset}`)
-      .then(response => setMessages(prevMessages => [...prevMessages, ...response.data]))
-      .catch(error => console.error("Error fetching messages:", error));
+    axios
+      .get(`${API_URL}/messages/${selectedChannel}?offset=${offset}`)
+      .then((response) =>
+        setMessages((prevMessages) => [...prevMessages, ...response.data])
+      )
+      .catch((error) => console.error("Error fetching messages:", error));
   };
 
   const handleChannelSelect = (channelId) => {
@@ -70,38 +86,53 @@ function App() {
 
   const handleScroll = (e) => {
     if (e.target.scrollHeight - e.target.scrollTop === e.target.clientHeight) {
-      setOffset(prevOffset => prevOffset + 20);
+      setOffset((prevOffset) => prevOffset + 20);
     }
   };
 
   const handleThreadSelect = (threadTs) => {
     if (threadTs) {
       setSelectedThread(threadTs);
-      axios.get(`${API_URL}/thread/${threadTs}`)
-        .then(response => 
-          {
-            setThreadMessages(response.data)
-          })
-        .catch(error => console.error("Error fetching thread messages:", error));
+      axios
+        .get(`${API_URL}/thread/${threadTs}`)
+        .then((response) => {
+          setThreadMessages(response.data);
+        })
+        .catch((error) =>
+          console.error("Error fetching thread messages:", error)
+        );
     }
   };
 
   const handleOptOut = () => {
-    if (window.confirm("Questa azione rimuoverà tutti i tuoi post per sempre e non sarà più possibile recuperarli (da questa interfaccia, non da Slack). Inoltre non potrai più consultare gli archivi. Sei sicuro?")) {
-      axios.get(API_URL + "/optout")
+    if (
+      window.confirm(
+        "Questa azione rimuoverà tutti i tuoi post per sempre e non sarà più possibile recuperarli (da questa interfaccia, non da Slack). Inoltre non potrai più consultare gli archivi. Sei sicuro?"
+      )
+    ) {
+      axios
+        .get(API_URL + "/optout")
         .then(() => setOptedOut(true))
-        .catch(error => console.error("Error opting out:", error));
+        .catch((error) => console.error("Error opting out:", error));
     }
   };
 
   const handleSearch = () => {
-    axios.get(`${API_URL}/search?query=${searchQuery}`)
-      .then(response => 
-      {
+    const searchParams = new URLSearchParams({
+      query: searchQuery,
+      user_name: searchUserName,
+      channel_name: searchChannelName,
+      start_time: searchStartTime,
+      end_time: searchEndTime,
+    });
+
+    axios
+      .get(`${API_URL}/searchV2?${searchParams.toString()}`)
+      .then((response) => {
         setMessages(response.data);
-      }
-      )
-      .catch(error => console.error("Error searching messages:", error));
+        setSelectedChannel(null); // Clear selected channel when searching
+      })
+      .catch((error) => console.error("Error searching messages:", error));
   };
 
   const formatTimestamp = (timestamp) => {
@@ -112,9 +143,16 @@ function App() {
     <div className="flex flex-col h-screen bg-gray-100">
       {/* User info bar */}
       <div className="bg-purple-700 text-white p-4">
-        <div>Utente: {username} (ID: {user})</div>
-        <div>Opt-out: {optedOut ? "Hai effettuato Opt-out. Da questo momento non puoi più consultare gli archivi." : "No"}</div>
-        <button 
+        <div>
+          Utente: {username} (ID: {user})
+        </div>
+        <div>
+          Opt-out:{" "}
+          {optedOut
+            ? "Hai effettuato Opt-out. Da questo momento non puoi più consultare gli archivi."
+            : "No"}
+        </div>
+        <button
           onClick={handleOptOut}
           className="bg-purple-900 hover:bg-purple-800 text-white font-bold py-2 px-4 rounded mt-2"
         >
@@ -131,7 +169,7 @@ function App() {
               <li
                 key={channel.id}
                 className={`flex items-center mb-2 cursor-pointer ${
-                  selectedChannel === channel.id ? 'bg-purple-800' : ''
+                  selectedChannel === channel.id ? "bg-purple-800" : ""
                 }`}
                 onClick={() => handleChannelSelect(channel.id)}
               >
@@ -146,19 +184,64 @@ function App() {
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Search bar */}
           <div className="bg-white border-b p-4">
-            <div className="flex items-center bg-gray-100 rounded-md p-2">
-              <Search className="text-gray-500 mr-2" size={20} />
-              <input
-                type="text"
-                placeholder="Cerca messaggi..."
-                className="bg-transparent outline-none flex-1"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              />
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center bg-gray-100 rounded-md p-2">
+                <Search className="text-gray-500 mr-2" size={20} />
+                <input
+                  type="text"
+                  placeholder="Cerca messaggi..."
+                  className="bg-transparent outline-none flex-1"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <div className="flex space-x-2">
+                <div className="flex items-center bg-gray-100 rounded-md p-2 flex-1">
+                  <User className="text-gray-500 mr-2" size={20} />
+                  <input
+                    type="text"
+                    placeholder="Nome utente..."
+                    className="bg-transparent outline-none flex-1"
+                    value={searchUserName}
+                    onChange={(e) => setSearchUserName(e.target.value)}
+                  />
+                </div>
+                <div className="flex items-center bg-gray-100 rounded-md p-2 flex-1">
+                  <Hash className="text-gray-500 mr-2" size={20} />
+                  <input
+                    type="text"
+                    placeholder="Nome canale..."
+                    className="bg-transparent outline-none flex-1"
+                    value={searchChannelName}
+                    onChange={(e) => setSearchChannelName(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="flex space-x-2">
+                <div className="flex items-center bg-gray-100 rounded-md p-2 flex-1">
+                  <Calendar className="text-gray-500 mr-2" size={20} />
+                  <input
+                    type="datetime-local"
+                    placeholder="Data inizio..."
+                    className="bg-transparent outline-none flex-1"
+                    value={searchStartTime}
+                    onChange={(e) => setSearchStartTime(e.target.value)}
+                  />
+                </div>
+                <div className="flex items-center bg-gray-100 rounded-md p-2 flex-1">
+                  <Calendar className="text-gray-500 mr-2" size={20} />
+                  <input
+                    type="datetime-local"
+                    placeholder="Data fine..."
+                    className="bg-transparent outline-none flex-1"
+                    value={searchEndTime}
+                    onChange={(e) => setSearchEndTime(e.target.value)}
+                  />
+                </div>
+              </div>
               <button
                 onClick={handleSearch}
-                className="bg-purple-600 text-white px-4 py-2 rounded-md ml-2"
+                className="bg-purple-600 text-white px-4 py-2 rounded-md"
               >
                 Cerca
               </button>
@@ -171,11 +254,17 @@ function App() {
               <div
                 key={message.timestamp}
                 className="mb-4 cursor-pointer hover:bg-gray-100 p-2 rounded"
-                onClick={() => handleThreadSelect(message.thread_ts || message.timestamp)}
+                onClick={() =>
+                  handleThreadSelect(message.thread_ts || message.timestamp)
+                }
               >
                 <div className="font-semibold">{message.user_name}</div>
-                <div className="whitespace-pre-wrap parsed-content">{parse(marked(message.message))}</div>
-                <div className="text-xs text-gray-500">{formatTimestamp(message.timestamp)}</div>
+                <div className="whitespace-pre-wrap parsed-content">
+                  {parse(marked(message.message))}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {formatTimestamp(message.timestamp)}
+                </div>
               </div>
             ))}
           </div>
@@ -195,19 +284,23 @@ function App() {
             {threadMessages.map((thread) => (
               <div key={thread.timestamp} className="mb-4">
                 <div className="font-semibold">{thread.user_name}</div>
-                <div className="whitespace-pre-wrap parsed-content">{parse(marked(thread.message))}</div>
-                <div className="text-xs text-gray-500">{formatTimestamp(thread.timestamp)}</div>
+                <div className="whitespace-pre-wrap parsed-content">
+                  {parse(marked(thread.message))}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {formatTimestamp(thread.timestamp)}
+                </div>
                 {thread.permalink && (
-                    <a
-                      href={thread.permalink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center text-blue-500 hover:underline"
-                    >
-                      <LinkIcon size={12} className="mr-1" />
-                      Permalink
-                    </a>
-                  )}
+                  <a
+                    href={thread.permalink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center text-blue-500 hover:underline"
+                  >
+                    <LinkIcon size={12} className="mr-1" />
+                    Permalink
+                  </a>
+                )}
               </div>
             ))}
           </div>
