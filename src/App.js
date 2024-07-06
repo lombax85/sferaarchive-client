@@ -33,6 +33,7 @@ function App() {
   const [username, setUserName] = useState(null);
   const [optedOut, setOptedOut] = useState(false);
   const location = useLocation();
+  const [isAccordionOpen, setIsAccordionOpen] = useState(false);
 
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
@@ -138,6 +139,10 @@ function App() {
   const formatTimestamp = (timestamp) => {
     return new Date(timestamp * 1000).toLocaleString();
   };
+  
+  const toggleAccordion = () => {
+    setIsAccordionOpen(!isAccordionOpen);
+  };
 
   return (
     <div className="flex flex-col h-screen bg-gray-100">
@@ -152,12 +157,31 @@ function App() {
             ? "Hai effettuato Opt-out. Da questo momento non puoi più consultare gli archivi."
             : "No"}
         </div>
-        <button
-          onClick={handleOptOut}
-          className="bg-purple-900 hover:bg-purple-800 text-white font-bold py-2 px-4 rounded mt-2"
-        >
-          Opt Out
-        </button>
+        <div className="mt-2">
+          <button
+            onClick={toggleAccordion}
+            className="bg-purple-900 hover:bg-purple-800 text-white font-bold py-2 px-4 rounded flex items-center"
+          >
+            Opzioni Avanzate
+            <ChevronDown
+              className={`ml-2 transform ${isAccordionOpen ? "rotate-180" : ""}`}
+              size={20}
+            />
+          </button>
+          {isAccordionOpen && (
+            <div className="mt-2 p-4 bg-purple-800 rounded">
+              <button
+                onClick={handleOptOut}
+                className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Opt Out
+              </button>
+              <p className="text-sm mt-2 text-purple-200">
+                Attenzione: questa azione rimuoverà tutti i tuoi post per sempre e non sarà più possibile recuperarli (da questa interfaccia, non da Slack). Inoltre non potrai più consultare gli archivi.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-1 overflow-hidden">
