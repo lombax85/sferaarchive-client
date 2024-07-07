@@ -13,6 +13,7 @@ import { useLocation } from "react-router-dom";
 import { marked } from "marked";
 import parse from "html-react-parser";
 import "./App.css";
+import emojiDatasource from "https://cdn.jsdelivr.net/npm/emoji-datasource@15.1.2/+esm";
 
 const API_URL = "https://slack-archive.sferait.org";
 
@@ -35,6 +36,7 @@ function App() {
   const location = useLocation();
   const [isAccordionOpen, setIsAccordionOpen] = useState(false);
   const [emoji, setEmoji] = useState([]);
+  const [emojiDatasourceMap, setEmojiDatasourceMap] = useState({});
 
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
@@ -58,7 +60,16 @@ function App() {
         .get(API_URL + "/emoji")
         .then((response) => setEmoji(response.data.emoji))
         .catch((error) => console.error("Error fetching emoji:", error));
-      
+
+      // Create a map of emoji shortnames to unicode characters
+      const emojiMap = emojiDatasource.reduce((acc, emoji) => {
+        if (emoji.short_name) {
+          acc[emoji.short_name] = emoji.unified;
+        }
+        return acc;
+      }, {});
+      setEmojiDatasourceMap(emojiMap);
+
       axios
         .get(API_URL + "/whoami")
         .then((response) => {
@@ -87,6 +98,14 @@ function App() {
         message.message = message.message.replace(regex, emojiImgTag);
       }
     }
+
+    // Replace emoji using emoji-datasource
+    Object.keys(emojiDatasourceMap).forEach(shortName => {
+      const regex = new RegExp(`:${shortName}:`, 'g');
+      const unicodeEmoji = String.fromCodePoint(parseInt(emojiDatasourceMap[shortName], 16));
+      message.message = message.message.replace(regex, unicodeEmoji);
+    });
+
     return message;
   };
   
