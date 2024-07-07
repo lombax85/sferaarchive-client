@@ -75,28 +75,26 @@ function App() {
       fetchMessages();
     }
   }, [selectedChannel, offset]);
+
+  const replaceEmoji = (message) => {
+    let emojiKeys = Object.keys(emoji);
+    let emojiValues = Object.values(emoji);
+
+    for (let i = 0; i < emojiKeys.length; i++) {
+      if (message.message.includes(":" + emojiKeys[i] + ":")) {
+        const emojiImgTag = `<img src='${emojiValues[i]}' alt='${emojiKeys[i]}' class='emoji' />`;
+        const regex = new RegExp(":" + emojiKeys[i] + ":", "g");
+        message.message = message.message.replace(regex, emojiImgTag);
+      }
+    }
+    return message;
+  };
   
   const fetchMessages = () => {
     axios
       .get(`${API_URL}/messages/${selectedChannel}?offset=${offset}`)
       .then((response) =>
-        setMessages((prevMessages) => {
-          const messages_with_emojis = response.data.map((message) => {
-            let emojiKeys = Object.keys(emoji);
-            let emojiValues = Object.values(emoji);
-  
-            for (let i = 0; i < emojiKeys.length; i++) {
-              if (message.message.includes(":" + emojiKeys[i] + ":")) {
-                const emojiImgTag = `<img src='${emojiValues[i]}' alt='${emojiKeys[i]}' class='emoji' />`;
-                const regex = new RegExp(":" + emojiKeys[i] + ":", "g");
-                message.message = message.message.replace(regex, emojiImgTag);
-              }
-            }
-            return message;
-          });
-  
-          return [...prevMessages, ...messages_with_emojis];
-        })
+        setMessages((prevMessages) => [...prevMessages, ...response.data.map((message) => replaceEmoji(message))])
       )
       .catch((error) => console.error("Error fetching messages:", error));
   };
@@ -119,7 +117,7 @@ function App() {
       axios
         .get(`${API_URL}/thread/${threadTs}`)
         .then((response) => {
-          setThreadMessages(response.data);
+          setThreadMessages(response.data.map((message) => replaceEmoji(message)));
         })
         .catch((error) =>
           console.error("Error fetching thread messages:", error)
