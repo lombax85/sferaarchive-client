@@ -34,6 +34,7 @@ function App() {
   const [optedOut, setOptedOut] = useState(false);
   const location = useLocation();
   const [isAccordionOpen, setIsAccordionOpen] = useState(false);
+  const [emoji, setEmoji] = useState([]);
 
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
@@ -53,6 +54,11 @@ function App() {
         .then((response) => setChannels(response.data))
         .catch((error) => console.error("Error fetching channels:", error));
 
+      axios
+        .get(API_URL + "/emoji")
+        .then((response) => setEmoji(response.data.emoji))
+        .catch((error) => console.error("Error fetching emoji:", error));
+      
       axios
         .get(API_URL + "/whoami")
         .then((response) => {
@@ -74,7 +80,30 @@ function App() {
     axios
       .get(`${API_URL}/messages/${selectedChannel}?offset=${offset}`)
       .then((response) =>
-        setMessages((prevMessages) => [...prevMessages, ...response.data])
+        setMessages(
+          (prevMessages) => {
+
+            const messages_with_emojis = response.data.map((message) => {
+              // get all emoji keys
+              let emojiKeys = Object.keys(emoji);
+
+              // get all emoji values
+              let emojiValues = Object.values(emoji);
+
+              // loop through all emoji keys
+              for (let i = 0; i < emojiKeys.length; i++) {
+                // check if the message contains the emoji key
+                if (message.message.includes(":"+emojiKeys[i]+":")) {
+                  // replace the emoji key with the emoji value inside an <img> tag on the same line
+                  message.message = message.message.replace(":"+emojiKeys[i]+":", "<img src='"+emojiValues[i]+"' style='height: 20px; width: 20px; margin: 0 2px;' />");
+                }
+              }
+              return message;
+            });
+
+            return [...prevMessages, ...messages_with_emojis]
+          }
+        )
       )
       .catch((error) => console.error("Error fetching messages:", error));
   };
