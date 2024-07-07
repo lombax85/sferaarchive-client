@@ -55,7 +55,7 @@ function App() {
         .get(API_URL + "/channels")
         .then((response) => setChannels(response.data))
         .catch((error) => console.error("Error fetching channels:", error));
-      
+
       axios
         .get(API_URL + "/users")
         .then((response) => setUserlist(response.data))
@@ -119,7 +119,10 @@ function App() {
       const toReplace = `<@${user.id}>`;
       if (message.message.includes(toReplace)) {
         const regex = new RegExp(toReplace, "g");
-        message.message = message.message.replace(regex, `<b>@${user.name}</b>`);
+        message.message = message.message.replace(
+          regex,
+          `<b>@${user.name}</b>`
+        );
       }
     });
 
@@ -129,12 +132,12 @@ function App() {
   const fetchMessages = () => {
     axios
       .get(`${API_URL}/messages/${selectedChannel}?offset=${offset}`)
-      .then((response) =>
-        setMessages((prevMessages) => [
+      .then((response) => {
+        return setMessages((prevMessages) => [
           ...prevMessages,
           ...response.data.map((message) => replaceTags(message)),
-        ])
-      )
+        ]);
+      })
       .catch((error) => console.error("Error fetching messages:", error));
   };
 
@@ -342,17 +345,28 @@ function App() {
             {messages.map((message) => (
               <div
                 key={message.timestamp}
-                className="mb-4 cursor-pointer hover:bg-gray-100 p-2 rounded"
+                className="mb-4 cursor-pointer hover:bg-gray-100 p-2 rounded flex items-start"
                 onClick={() =>
                   handleThreadSelect(message.thread_ts || message.timestamp)
                 }
               >
-                <div className="font-semibold">{message.user_name}</div>
-                <div className="whitespace-pre-wrap parsed-content">
-                  {parse(marked(message.message))}
+                <div className="flex-shrink-0 mr-3">
+                  <User className="w-8 h-8 text-gray-400 bg-gray-200 rounded-full p-1" />
                 </div>
-                <div className="text-xs text-gray-500">
-                  {formatTimestamp(message.timestamp)}
+                <div className="flex-grow">
+                  <div className="font-semibold">{message.user_name}</div>
+                  <div className="whitespace-pre-wrap parsed-content">
+                    {parse(marked(message.message))}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1 flex items-center">
+                    <span>{formatTimestamp(message.timestamp)}</span>
+                    {message.thread_count > 0 && (
+                      <span className="ml-2 bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs font-medium">
+                        {message.thread_count}{" "}
+                        {message.thread_count === 1 ? "risposta" : "risposte"}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -371,29 +385,35 @@ function App() {
               />
             </div>
             {threadMessages.map((thread) => (
-              <div key={thread.timestamp} className="mb-4">
-                <div className="font-semibold">{thread.user_name}</div>
-                <div className="whitespace-pre-wrap parsed-content">
-                  {parse(marked(thread.message))}
+              <div key={thread.timestamp + "_thread"} className="mb-4 flex items-start">
+                <div className="flex-shrink-0 mr-3">
+                  <User className="w-8 h-8 text-gray-400 bg-gray-200 rounded-full p-1" />
                 </div>
-                <div className="text-xs text-gray-500">
-                  {formatTimestamp(thread.timestamp)}
+                <div className="flex-grow">
+                  <div className="font-semibold">{thread.user_name}</div>
+                  <div className="whitespace-pre-wrap parsed-content">
+                    {parse(marked(thread.message))}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {formatTimestamp(thread.timestamp)}
+                  </div>
+                  {thread.permalink && (
+                    <a
+                      href={thread.permalink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center text-blue-500 hover:underline text-xs mt-1"
+                    >
+                      <LinkIcon size={12} className="mr-1" />
+                      Permalink
+                    </a>
+                  )}
                 </div>
-                {thread.permalink && (
-                  <a
-                    href={thread.permalink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center text-blue-500 hover:underline"
-                  >
-                    <LinkIcon size={12} className="mr-1" />
-                    Permalink
-                  </a>
-                )}
               </div>
             ))}
           </div>
         )}
+
       </div>
     </div>
   );
