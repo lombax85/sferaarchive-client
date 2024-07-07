@@ -1,70 +1,78 @@
-# Getting Started with Create React App
+# Sfera IT Archive Client
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Sfera IT Archive Client è un'applicazione web per la gestione e la consultazione degli archivi di messaggi. Questa applicazione è stata creata utilizzando [Create React App](https://github.com/facebook/create-react-app).
 
-## Available Scripts
+## Requisiti
 
-In the project directory, you can run:
+- Node.js (versione 14 o superiore)
+- npm (versione 6 o superiore) o yarn
 
-### `npm start`
+## Installazione
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+1. Clona il repository:
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+    ```sh
+    git clone https://github.com/tuo-username/sfera-it-archive-client.git
+    cd sfera-it-archive-client
+    ```
 
-### `npm test`
+2. Installa le dipendenze:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+    ```sh
+    npm install
+    ```
 
-### `npm run build`
+## Avvio dell'Applicazione in Locale
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Per avviare l'applicazione in modalità di sviluppo, esegui:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```sh
+npm start
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Apri [http://localhost:3000](http://localhost:3000) nel tuo browser per visualizzarla. La pagina si ricaricherà automaticamente quando apporti modifiche al codice.
 
-### `npm run eject`
+## Token
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Un token JWT può essere ottenuto dalla versione di produzione dell'applicazione. Segui questi passaggi per ottenerlo e utilizzarlo per il debug:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+1. Accedi alla versione di produzione dell'applicazione.
+2. Effettua il login per generare un token JWT.
+3. Copia il token JWT dall'URL o dagli strumenti di sviluppo del browser.
+4. Apri il file `launch.json` nel tuo progetto.
+5. Inserisci il token JWT copiato nel campo appropriato per poter debuggare l'applicazione localmente.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Esempio di configurazione in `launch.json`:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+      {
+          "type": "chrome",
+          "request": "launch",
+          "name": "Debug React Run",
+          "url": "http://localhost:3000?token=INSERISCI_IL_TOKEN_QUI",
+          "webRoot": "${workspaceFolder}/src",
+          "runtimeArgs": [
+        "--disable-web-security",
+      ],
+      }
+  ]
+}
+```
 
-## Learn More
+In questo modo, il token JWT verrà utilizzato durante il debug dell'applicazione. 
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Deployment
 
-### Code Splitting
+Per effettuare il deployment dell'applicazione, è necessario seguire questi passaggi:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+1. Effettua una pull request sul branch `main` del repository.
+2. Una volta che la pull request è stata approvata, il deployment avverrà automaticamente.
 
-### Analyzing the Bundle Size
+L'applicazione sarà disponibile online all'indirizzo: [https://sferaarchive-client.vercel.app/](https://sferaarchive-client.vercel.app/)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+Il processo di deployment è gestito automaticamente da Vercel.
 
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
