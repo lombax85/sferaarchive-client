@@ -100,20 +100,25 @@ function App() {
     }
 
     // Replace emoji using emoji-datasource
-    Object.keys(emojiDatasourceMap).forEach(shortName => {
-      const regex = new RegExp(`:${shortName}:`, 'g');
-      const unicodeEmoji = String.fromCodePoint(parseInt(emojiDatasourceMap[shortName], 16));
+    Object.keys(emojiDatasourceMap).forEach((shortName) => {
+      const regex = new RegExp(`:${shortName}:`, "g");
+      const unicodeEmoji = String.fromCodePoint(
+        parseInt(emojiDatasourceMap[shortName], 16)
+      );
       message.message = message.message.replace(regex, unicodeEmoji);
     });
 
     return message;
   };
-  
+
   const fetchMessages = () => {
     axios
       .get(`${API_URL}/messages/${selectedChannel}?offset=${offset}`)
       .then((response) =>
-        setMessages((prevMessages) => [...prevMessages, ...response.data.map((message) => replaceEmoji(message))])
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          ...response.data.map((message) => replaceEmoji(message)),
+        ])
       )
       .catch((error) => console.error("Error fetching messages:", error));
   };
@@ -136,7 +141,9 @@ function App() {
       axios
         .get(`${API_URL}/thread/${threadTs}`)
         .then((response) => {
-          setThreadMessages(response.data.map((message) => replaceEmoji(message)));
+          setThreadMessages(
+            response.data.map((message) => replaceEmoji(message))
+          );
         })
         .catch((error) =>
           console.error("Error fetching thread messages:", error)
@@ -178,7 +185,7 @@ function App() {
   const formatTimestamp = (timestamp) => {
     return new Date(timestamp * 1000).toLocaleString();
   };
-  
+
   const toggleAccordion = () => {
     setIsAccordionOpen(!isAccordionOpen);
   };
@@ -203,7 +210,9 @@ function App() {
           >
             Opzioni Avanzate
             <ChevronDown
-              className={`ml-2 transform ${isAccordionOpen ? "rotate-180" : ""}`}
+              className={`ml-2 transform ${
+                isAccordionOpen ? "rotate-180" : ""
+              }`}
               size={20}
             />
           </button>
@@ -216,7 +225,9 @@ function App() {
                 Opt Out
               </button>
               <p className="text-sm mt-2 text-purple-200">
-                Attenzione: questa azione rimuoverà tutti i tuoi post per sempre e non sarà più possibile recuperarli (da questa interfaccia, non da Slack). Inoltre non potrai più consultare gli archivi.
+                Attenzione: questa azione rimuoverà tutti i tuoi post per sempre
+                e non sarà più possibile recuperarli (da questa interfaccia, non
+                da Slack). Inoltre non potrai più consultare gli archivi.
               </p>
             </div>
           )}
