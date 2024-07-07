@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
-  MessageSquare,
   Hash,
   Search,
   ChevronDown,
@@ -37,6 +36,7 @@ function App() {
   const [isAccordionOpen, setIsAccordionOpen] = useState(false);
   const [emoji, setEmoji] = useState([]);
   const [emojiDatasourceMap, setEmojiDatasourceMap] = useState({});
+  const [userlist, setUserlist] = useState([]);
 
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
@@ -55,6 +55,11 @@ function App() {
         .get(API_URL + "/channels")
         .then((response) => setChannels(response.data))
         .catch((error) => console.error("Error fetching channels:", error));
+      
+      axios
+        .get(API_URL + "/users")
+        .then((response) => setUserlist(response.data))
+        .catch((error) => console.error("Error fetching users:", error));
 
       axios
         .get(API_URL + "/emoji")
@@ -87,10 +92,11 @@ function App() {
     }
   }, [selectedChannel, offset]);
 
-  const replaceEmoji = (message) => {
+  const replaceTags = (message) => {
     let emojiKeys = Object.keys(emoji);
     let emojiValues = Object.values(emoji);
 
+    // Replace emoji using custom emoji from slack
     for (let i = 0; i < emojiKeys.length; i++) {
       if (message.message.includes(":" + emojiKeys[i] + ":")) {
         const emojiImgTag = `<img src='${emojiValues[i]}' alt='${emojiKeys[i]}' class='emoji' />`;
@@ -108,6 +114,15 @@ function App() {
       message.message = message.message.replace(regex, unicodeEmoji);
     });
 
+    // replace user id with username
+    userlist.forEach((user) => {
+      const toReplace = `<@${user.id}>`;
+      if (message.message.includes(toReplace)) {
+        const regex = new RegExp(toReplace, "g");
+        message.message = message.message.replace(regex, `<b>@${user.name}</b>`);
+      }
+    });
+
     return message;
   };
 
@@ -117,7 +132,7 @@ function App() {
       .then((response) =>
         setMessages((prevMessages) => [
           ...prevMessages,
-          ...response.data.map((message) => replaceEmoji(message)),
+          ...response.data.map((message) => replaceTags(message)),
         ])
       )
       .catch((error) => console.error("Error fetching messages:", error));
@@ -142,7 +157,7 @@ function App() {
         .get(`${API_URL}/thread/${threadTs}`)
         .then((response) => {
           setThreadMessages(
-            response.data.map((message) => replaceEmoji(message))
+            response.data.map((message) => replaceTags(message))
           );
         })
         .catch((error) =>
