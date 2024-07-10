@@ -7,6 +7,7 @@ import {
   Link as LinkIcon,
   Calendar,
   User,
+  Menu,
 } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { marked } from "marked";
@@ -37,6 +38,8 @@ function App() {
   const [emoji, setEmoji] = useState([]);
   const [emojiDatasourceMap, setEmojiDatasourceMap] = useState({});
   const [userlist, setUserlist] = useState([]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
 
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
@@ -141,6 +144,10 @@ function App() {
       .catch((error) => console.error("Error fetching messages:", error));
   };
 
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
   const handleChannelSelect = (channelId) => {
     setSelectedChannel(channelId);
     setMessages([]);
@@ -212,14 +219,22 @@ function App() {
     <div className="flex flex-col h-screen bg-gray-100">
       {/* User info bar */}
       <div className="bg-purple-700 text-white p-4">
-        <div>
-          Utente: {username} (ID: {user})
-        </div>
-        <div>
-          Opt-out:{" "}
-          {optedOut
-            ? "Hai effettuato Opt-out. Da questo momento non puoi più consultare gli archivi."
-            : "No"}
+        <div className="flex justify-between items-center">
+          <div>
+            <div>Utente: {username} (ID: {user})</div>
+            <div>
+              Opt-out:{" "}
+              {optedOut
+                ? "Hai effettuato Opt-out. Da questo momento non puoi più consultare gli archivi."
+                : "No"}
+            </div>
+          </div>
+          <button
+            onClick={toggleSidebar}
+            className="lg:hidden bg-purple-800 p-2 rounded"
+          >
+            <Menu size={24} />
+          </button>
         </div>
         <div className="mt-2">
           <button
@@ -228,9 +243,7 @@ function App() {
           >
             Opzioni Avanzate
             <ChevronDown
-              className={`ml-2 transform ${
-                isAccordionOpen ? "rotate-180" : ""
-              }`}
+              className={`ml-2 transform ${isAccordionOpen ? "rotate-180" : ""}`}
               size={20}
             />
           </button>
@@ -254,7 +267,7 @@ function App() {
 
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <div className="w-64 bg-purple-900 text-white p-4 overflow-y-auto">
+        <div className={`${isSidebarOpen ? 'block' : 'hidden'} lg:block w-64 bg-purple-900 text-white p-4 overflow-y-auto`}>
           <h1 className="text-2xl font-bold mb-4">Canali</h1>
           <ul>
             {channels.map((channel) => (
@@ -287,7 +300,7 @@ function App() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <div className="flex space-x-2">
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                 <div className="flex items-center bg-gray-100 rounded-md p-2 flex-1">
                   <User className="text-gray-500 mr-2" size={20} />
                   <input
@@ -309,7 +322,7 @@ function App() {
                   />
                 </div>
               </div>
-              <div className="flex space-x-2">
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                 <div className="flex items-center bg-gray-100 rounded-md p-2 flex-1">
                   <Calendar className="text-gray-500 mr-2" size={20} />
                   <input
@@ -375,7 +388,7 @@ function App() {
 
         {/* Thread sidebar */}
         {selectedThread && (
-          <div className="w-1/3 bg-white border-l p-4 overflow-y-auto">
+          <div className="w-full lg:w-1/3 bg-white border-l p-4 overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold">Thread</h3>
               <ChevronDown
@@ -413,7 +426,6 @@ function App() {
             ))}
           </div>
         )}
-
       </div>
     </div>
   );
