@@ -8,6 +8,7 @@ import {
   Calendar,
   User,
   Menu,
+  Info,
 } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { marked } from "marked";
@@ -215,6 +216,26 @@ function App() {
     setIsAccordionOpen(!isAccordionOpen);
   };
 
+  const Tooltip = ({ content, children }) => {
+    const [isVisible, setIsVisible] = useState(false);
+  
+    return (
+      <div className="relative inline-block">
+        <div
+          onMouseEnter={() => setIsVisible(true)}
+          onMouseLeave={() => setIsVisible(false)}
+        >
+          {children}
+        </div>
+        {isVisible && (
+          <div className="absolute z-10 w-64 p-2 text-sm bg-gray-800 text-white rounded shadow-lg right-0 top-full mt-2">
+            {content}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col h-screen bg-gray-100">
       {/* User info bar */}
@@ -299,6 +320,19 @@ function App() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
+                <div className="relative">
+                  <Tooltip content={
+                    <div>
+                      <p className="font-bold mb-1">Istruzioni di ricerca:</p>
+                      <ul className="list-disc pl-4">
+                        <li>Usa le virgolette ("") per cercare una frase esatta</li>
+                        <li>Altrimenti, verranno cercate tutte le parole in qualsiasi ordine</li>
+                      </ul>
+                    </div>
+                  }>
+                    <Info className="text-gray-500 ml-2 cursor-help" size={20} />
+                  </Tooltip>
+                </div>
               </div>
               <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                 <div className="flex items-center bg-gray-100 rounded-md p-2 flex-1">
