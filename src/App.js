@@ -14,7 +14,7 @@ import { useLocation } from "react-router-dom";
 import { marked } from "marked";
 import parse from "html-react-parser";
 import "./App.css";
-import emojiDatasource from "https://cdn.jsdelivr.net/npm/emoji-datasource@15.1.2/+esm";
+import emojiDatasource from "https://cdn.jsdelivr.net/npm/emoji-datasource@15.1.2/+esm"
 
 const API_URL = "https://slack-archive.sferait.org";
 
@@ -40,6 +40,7 @@ function App() {
   const [emojiDatasourceMap, setEmojiDatasourceMap] = useState({});
   const [userlist, setUserlist] = useState([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [useEmbeddingSearch, setUseEmbeddingSearch] = useState(false);
 
 
   useEffect(() => {
@@ -199,14 +200,17 @@ function App() {
       end_time: searchEndTime,
     });
 
+    const searchEndpoint = useEmbeddingSearch ? "searchEmbeddings" : "searchV2";
+
     axios
-      .get(`${API_URL}/searchV2?${searchParams.toString()}`)
+      .get(`${API_URL}/${searchEndpoint}?${searchParams.toString()}`)
       .then((response) => {
         setMessages(response.data);
         setSelectedChannel(null); // Clear selected channel when searching
       })
       .catch((error) => console.error("Error searching messages:", error));
   };
+
 
   const formatTimestamp = (timestamp) => {
     return new Date(timestamp * 1000).toLocaleString();
@@ -378,6 +382,17 @@ function App() {
                   />
                 </div>
               </div>
+
+              <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="embeddingSearch"
+                checked={useEmbeddingSearch}
+                onChange={(e) => setUseEmbeddingSearch(e.target.checked)}
+                className="mr-2"
+              />
+              <label htmlFor="embeddingSearch">Use Embedding Search</label>
+            </div>
               <button
                 onClick={handleSearch}
                 className="bg-purple-600 text-white px-4 py-2 rounded-md"
