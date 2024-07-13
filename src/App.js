@@ -41,6 +41,7 @@ function App() {
   const [userlist, setUserlist] = useState([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [useEmbeddingSearch, setUseEmbeddingSearch] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
 
   useEffect(() => {
@@ -192,6 +193,7 @@ function App() {
   };
 
   const handleSearch = () => {
+    setIsLoading(true);
     const searchParams = new URLSearchParams({
       query: searchQuery,
       user_name: searchUserName,
@@ -206,10 +208,15 @@ function App() {
       .get(`${API_URL}/${searchEndpoint}?${searchParams.toString()}`)
       .then((response) => {
         setMessages(response.data);
-        setSelectedChannel(null); // Clear selected channel when searching
+        setSelectedChannel(null);
+        setIsLoading(false);
       })
-      .catch((error) => console.error("Error searching messages:", error));
+      .catch((error) => {
+        console.error("Error searching messages:", error);
+        setIsLoading(false);
+      });
   };
+
 
 
   const formatTimestamp = (timestamp) => {
@@ -240,8 +247,17 @@ function App() {
     );
   };
 
+  const Spinner = () => (
+    <div className="fixed top-0 left-0 right-0 bottom-0 w-full h-screen z-50 overflow-hidden bg-gray-700 opacity-75 flex flex-col items-center justify-center">
+      <div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div>
+      <h2 className="text-center text-white text-xl font-semibold">Loading...</h2>
+      <p className="w-1/3 text-center text-white">This may take a few seconds, please don't close this page.</p>
+    </div>
+  );
+
   return (
     <div className="flex flex-col h-screen bg-gray-100">
+      {isLoading && <Spinner />}
       {/* User info bar */}
       <div className="bg-purple-700 text-white p-4">
         <div className="flex justify-between items-center">
