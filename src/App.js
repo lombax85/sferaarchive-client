@@ -46,11 +46,13 @@ function App() {
 
   
   useEffect(() => {
-    // Check if datetime-local input is supported
-    const input = document.createElement('input');
-    input.setAttribute('type', 'datetime-local');
-    setIsDateTimeSupported(input.type === 'datetime-local');
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    
+    // Set to false for iOS and Safari, true for others
+    setIsDateTimeSupported(!(isIOS || isSafari));
   }, []);
+
 
 
   useEffect(() => {
