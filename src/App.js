@@ -42,6 +42,7 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [useEmbeddingSearch, setUseEmbeddingSearch] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  
 
 
   useEffect(() => {
@@ -217,6 +218,34 @@ function App() {
       });
   };
 
+  const formatDate = (date) => {
+    if (!date) return "";
+    const d = new Date(date);
+    const pad = (num) => num.toString().padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  };
+
+  const formatTime = (date) => {
+    if (!date) return "";
+    const d = new Date(date);
+    const pad = (num) => num.toString().padStart(2, '0');
+    return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+
+  const handleDateChange = (setter) => (e) => {
+    const { value } = e.target;
+    if (value) {
+      const [datePart, timePart] = value.split('T');
+      const newDate = new Date(`${datePart}T${timePart || '00:00'}`);
+      if (!isNaN(newDate.getTime())) {
+        setter(`${formatDate(newDate)}T${formatTime(newDate)}`);
+      } else {
+        setter(value);
+      }
+    } else {
+      setter('');
+    }
+  };
 
 
   const formatTimestamp = (timestamp) => {
@@ -376,28 +405,48 @@ function App() {
                   />
                 </div>
               </div>
+              
               <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                 <div className="flex items-center bg-gray-100 rounded-md p-2 flex-1">
                   <Calendar className="text-gray-500 mr-2" size={20} />
                   <input
-                    type="datetime-local"
-                    placeholder="Data inizio..."
+                    type="date"
+                    placeholder="Data inizio"
                     className="bg-transparent outline-none flex-1"
-                    value={searchStartTime}
-                    onChange={(e) => setSearchStartTime(e.target.value)}
+                    value={searchStartTime.split('T')[0]}
+                    onChange={handleDateChange(setSearchStartTime)}
+                  />
+                  <input
+                    type="time"
+                    className="bg-transparent outline-none ml-2"
+                    value={searchStartTime.split('T')[1] || ''}
+                    onChange={(e) => {
+                      const datePart = searchStartTime.split('T')[0] || formatDate(new Date());
+                      setSearchStartTime(`${datePart}T${e.target.value}`);
+                    }}
                   />
                 </div>
                 <div className="flex items-center bg-gray-100 rounded-md p-2 flex-1">
                   <Calendar className="text-gray-500 mr-2" size={20} />
                   <input
-                    type="datetime-local"
-                    placeholder="Data fine..."
+                    type="date"
+                    placeholder="Data fine"
                     className="bg-transparent outline-none flex-1"
-                    value={searchEndTime}
-                    onChange={(e) => setSearchEndTime(e.target.value)}
+                    value={searchEndTime.split('T')[0]}
+                    onChange={handleDateChange(setSearchEndTime)}
+                  />
+                  <input
+                    type="time"
+                    className="bg-transparent outline-none ml-2"
+                    value={searchEndTime.split('T')[1] || ''}
+                    onChange={(e) => {
+                      const datePart = searchEndTime.split('T')[0] || formatDate(new Date());
+                      setSearchEndTime(`${datePart}T${e.target.value}`);
+                    }}
                   />
                 </div>
               </div>
+
 
               <div className="flex items-center">
               <input
