@@ -69,7 +69,7 @@ function Digest() {
       {digest && (
         <div>
           <p className="text-gray-600 mb-4">Period: {digest.period}</p>
-          <div className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none">
+          <div className="prose prose-sm sm:prose lg:prose-lg max-w">
             <ReactMarkdown>{digest.digest}</ReactMarkdown>
           </div>
         </div>
