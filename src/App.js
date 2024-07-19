@@ -98,7 +98,7 @@ function App() {
           setUser(response.data.user_id);
           setUserName(response.data.username);
           setOptedOut(response.data.opted_out);
-          setAiOptedOut(response.data.ai_opted_out);
+          setAiOptedOut(response.data.opted_out_ai);
         })
         .catch((error) => console.error("Error fetching whoami:", error));
     }
