@@ -14,9 +14,10 @@ import { useLocation } from "react-router-dom";
 import { marked } from "marked";
 import parse from "html-react-parser";
 import "./App.css";
-import emojiDatasource from "https://cdn.jsdelivr.net/npm/emoji-datasource@15.1.2/+esm"
+import emojiDatasource from "https://cdn.jsdelivr.net/npm/emoji-datasource@15.1.2/+esm";
 
 const API_URL = "https://slack-archive.sferait.org";
+//const API_URL = "http://localhost:3333";
 
 function App() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -43,17 +44,16 @@ function App() {
   const [useEmbeddingSearch, setUseEmbeddingSearch] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isDateTimeSupported, setIsDateTimeSupported] = useState(true);
+  const [aiOptedOut, setAiOptedOut] = useState(false);
 
-  
   useEffect(() => {
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const isIOS =
+      /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-    
+
     // Set to false for iOS and Safari, true for others
     setIsDateTimeSupported(!(isIOS || isSafari));
   }, []);
-
-
 
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
@@ -98,6 +98,7 @@ function App() {
           setUser(response.data.user_id);
           setUserName(response.data.username);
           setOptedOut(response.data.opted_out);
+          setAiOptedOut(response.data.ai_opted_out);
         })
         .catch((error) => console.error("Error fetching whoami:", error));
     }
@@ -203,6 +204,15 @@ function App() {
     }
   };
 
+  const handleAiOptOutToggle = () => {
+    axios
+      .get(API_URL + "/optout_ai")
+      .then((response) => {
+        setAiOptedOut(response.data.ai_opted_out);
+      })
+      .catch((error) => console.error("Error toggling AI opt-out:", error));
+  };
+
   const handleSearch = () => {
     setIsLoading(true);
     const searchParams = new URLSearchParams({
@@ -257,7 +267,7 @@ function App() {
 
   const Tooltip = ({ content, children }) => {
     const [isVisible, setIsVisible] = useState(false);
-  
+
     return (
       <div className="relative inline-block">
         <div
@@ -278,8 +288,12 @@ function App() {
   const Spinner = () => (
     <div className="fixed top-0 left-0 right-0 bottom-0 w-full h-screen z-50 overflow-hidden bg-gray-700 opacity-75 flex flex-col items-center justify-center">
       <div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div>
-      <h2 className="text-center text-white text-xl font-semibold">Loading...</h2>
-      <p className="w-1/3 text-center text-white">This may take a few seconds, please don't close this page.</p>
+      <h2 className="text-center text-white text-xl font-semibold">
+        Loading...
+      </h2>
+      <p className="w-1/3 text-center text-white">
+        This may take a few seconds, please don't close this page.
+      </p>
     </div>
   );
 
@@ -287,56 +301,67 @@ function App() {
     <div className="flex flex-col h-screen bg-gray-100">
       {isLoading && <Spinner />}
       {/* User info bar */}
-      <div className="bg-purple-700 text-white p-4">
+      <div className="bg-purple-700 text-white p-2">
         <div className="flex justify-between items-center">
-          <div>
-            <div>Utente: {username} (ID: {user})</div>
+          <div className="flex items-center space-x-4">
             <div>
-              Opt-out:{" "}
-              {optedOut
-                ? "Hai effettuato Opt-out. Da questo momento non puoi più consultare gli archivi."
-                : "No"}
+              <span className="font-semibold">{username}</span> (ID: {user})
             </div>
+            <div>Opt-out: {optedOut ? "Sì" : "No"}</div>
+            <div>AI Opt-out: {aiOptedOut ? "Sì" : "No"}</div>
           </div>
-          <button
-            onClick={toggleSidebar}
-            className="lg:hidden bg-purple-800 p-2 rounded"
-          >
-            <Menu size={24} />
-          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={toggleAccordion}
+              className="bg-purple-800 hover:bg-purple-600 text-white font-bold py-1 px-2 rounded flex items-center text-sm"
+            >
+              Opzioni Avanzate
+              <ChevronDown
+                className={`ml-1 transform ${
+                  isAccordionOpen ? "rotate-180" : ""
+                }`}
+                size={16}
+              />
+            </button>
+            <button
+              onClick={toggleSidebar}
+              className="lg:hidden bg-purple-800 p-1 rounded"
+            >
+              <Menu size={20} />
+            </button>
+          </div>
         </div>
-        <div className="mt-2">
-          <button
-            onClick={toggleAccordion}
-            className="bg-purple-900 hover:bg-purple-800 text-white font-bold py-2 px-4 rounded flex items-center"
-          >
-            Opzioni Avanzate
-            <ChevronDown
-              className={`ml-2 transform ${isAccordionOpen ? "rotate-180" : ""}`}
-              size={20}
-            />
-          </button>
-          {isAccordionOpen && (
-            <div className="mt-2 p-4 bg-purple-800 rounded">
+        {isAccordionOpen && (
+          <div className="mt-2 p-2 bg-purple-800 rounded text-sm">
+            <div className="flex space-x-2">
               <button
                 onClick={handleOptOut}
-                className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                className="bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
               >
                 Opt Out
               </button>
-              <p className="text-sm mt-2 text-purple-200">
-                Attenzione: questa azione rimuoverà tutti i tuoi post per sempre
-                e non sarà più possibile recuperarli (da questa interfaccia, non
-                da Slack). Inoltre non potrai più consultare gli archivi.
-              </p>
+              <button
+                onClick={handleAiOptOutToggle}
+                className="bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
+              >
+                {aiOptedOut ? "AI Opt-in" : "AI Opt-out"}
+              </button>
             </div>
-          )}
-        </div>
+            <p className="text-xs mt-1 text-purple-200">
+              Attenzione: l'opt out rimuoverà tutti i tuoi post permanentemente.
+              L'opt-out AI è reversibile.
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <div className={`${isSidebarOpen ? 'block' : 'hidden'} lg:block w-64 bg-purple-900 text-white p-4 overflow-y-auto`}>
+        <div
+          className={`${
+            isSidebarOpen ? "block" : "hidden"
+          } lg:block w-64 bg-purple-900 text-white p-4 overflow-y-auto`}
+        >
           <h1 className="text-2xl font-bold mb-4">Canali</h1>
           <ul>
             {channels.map((channel) => (
@@ -369,16 +394,26 @@ function App() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
                 <div className="relative">
-                  <Tooltip content={
-                    <div>
-                      <p className="font-bold mb-1">Istruzioni di ricerca:</p>
-                      <ul className="list-disc pl-4">
-                        <li>Usa le virgolette ("") per cercare una frase esatta</li>
-                        <li>Altrimenti, verranno cercate tutte le parole in qualsiasi ordine</li>
-                      </ul>
-                    </div>
-                  }>
-                    <Info className="text-gray-500 ml-2 cursor-help" size={20} />
+                  <Tooltip
+                    content={
+                      <div>
+                        <p className="font-bold mb-1">Istruzioni di ricerca:</p>
+                        <ul className="list-disc pl-4">
+                          <li>
+                            Usa le virgolette ("") per cercare una frase esatta
+                          </li>
+                          <li>
+                            Altrimenti, verranno cercate tutte le parole in
+                            qualsiasi ordine
+                          </li>
+                        </ul>
+                      </div>
+                    }
+                  >
+                    <Info
+                      className="text-gray-500 ml-2 cursor-help"
+                      size={20}
+                    />
                   </Tooltip>
                 </div>
               </div>
@@ -404,7 +439,7 @@ function App() {
                   />
                 </div>
               </div>
-              
+
               <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                 <div className="flex items-center bg-gray-100 rounded-md p-2 flex-1">
                   <Calendar className="text-gray-500 mr-2" size={20} />
@@ -448,17 +483,16 @@ function App() {
                 </div>
               </div>
 
-
               <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="embeddingSearch"
-                checked={useEmbeddingSearch}
-                onChange={(e) => setUseEmbeddingSearch(e.target.checked)}
-                className="mr-2"
-              />
-              <label htmlFor="embeddingSearch">Use Embedding Search</label>
-            </div>
+                <input
+                  type="checkbox"
+                  id="embeddingSearch"
+                  checked={useEmbeddingSearch}
+                  onChange={(e) => setUseEmbeddingSearch(e.target.checked)}
+                  className="mr-2"
+                />
+                <label htmlFor="embeddingSearch">Use Embedding Search</label>
+              </div>
               <button
                 onClick={handleSearch}
                 className="bg-purple-600 text-white px-4 py-2 rounded-md"
@@ -513,7 +547,10 @@ function App() {
               />
             </div>
             {threadMessages.map((thread) => (
-              <div key={thread.timestamp + "_thread"} className="mb-4 flex items-start">
+              <div
+                key={thread.timestamp + "_thread"}
+                className="mb-4 flex items-start"
+              >
                 <div className="flex-shrink-0 mr-3">
                   <User className="w-8 h-8 text-gray-400 bg-gray-200 rounded-full p-1" />
                 </div>
