@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { marked } from 'marked';
-import parse from 'html-react-parser';
+import ReactMarkdown from 'react-markdown';
 
 const API_URL = "https://slack-archive.sferait.org";
 
@@ -51,8 +50,8 @@ function Digest() {
       {digest && (
         <div>
           <p className="text-gray-600 mb-4">Period: {digest.period}</p>
-          <div className="prose max-w-none">
-            {parse(marked(digest.digest))}
+          <div className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none">
+            <ReactMarkdown>{digest.digest}</ReactMarkdown>
           </div>
         </div>
       )}

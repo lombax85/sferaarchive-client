@@ -490,7 +490,7 @@ function App() {
                     <span>{formatTimestamp(message.timestamp)}</span>
                     {message.thread_count > 0 && (
                       <span className="ml-2 bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs font-medium">
-                        {message.thread_count}{" "}
+                        {message.thread_count - 1}{" "}
                         {message.thread_count === 1 ? "risposta" : "risposte"}
                       </span>
                     )}
