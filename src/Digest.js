@@ -63,6 +63,19 @@ function Digest() {
     }
   };
 
+  const handleGenerateAgain = () => {
+    setIsLoading(true);
+    axios.post(`${API_URL}/generate_digest`, { force_generate: true })
+      .then(response => {
+        setDigest(response.data);
+        setIsLoading(false);
+      })
+      .catch(error => {
+        setError(error);
+        setIsLoading(false);
+      });
+  };
+
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Digest</h1>
@@ -86,6 +99,9 @@ function Digest() {
           Invia domanda
         </button>
       </form>
+      <button className="mt-2 px-4 py-2 bg-blue-500 text-white rounded" onClick={handleGenerateAgain}>
+        Rigenera il digest
+      </button>
       {isLoadingDetails && <div>Caricamento dettagli...</div>}
       {details && (
         <div className="mt-8">
