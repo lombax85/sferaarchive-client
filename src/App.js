@@ -45,6 +45,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDateTimeSupported, setIsDateTimeSupported] = useState(true);
   const [aiOptedOut, setAiOptedOut] = useState(false);
+  const [isSearchBarExpanded, setIsSearchBarExpanded] = useState(false);
 
   useEffect(() => {
     const isIOS =
@@ -161,6 +162,10 @@ function App() {
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const toggleSearchBar = () => {
+    setIsSearchBarExpanded(!isSearchBarExpanded);
   };
 
   const handleChannelSelect = (channelId) => {
@@ -381,126 +386,147 @@ function App() {
 
         {/* Main content */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Search bar */}
-          <div className="bg-white border-b p-4">
-            <div className="flex flex-col space-y-2">
-              <div className="flex items-center bg-gray-100 rounded-md p-2">
-                <Search className="text-gray-500 mr-2" size={20} />
-                <input
-                  type="text"
-                  placeholder="Cerca messaggi..."
-                  className="bg-transparent outline-none flex-1"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <div className="relative">
-                  <Tooltip
-                    content={
-                      <div>
-                        <p className="font-bold mb-1">Istruzioni di ricerca:</p>
-                        <ul className="list-disc pl-4">
-                          <li>
-                            Usa le virgolette ("") per cercare una frase esatta
-                          </li>
-                          <li>
-                            Altrimenti, verranno cercate tutte le parole in
-                            qualsiasi ordine
-                          </li>
-                        </ul>
-                      </div>
-                    }
-                  >
-                    <Info
-                      className="text-gray-500 ml-2 cursor-help"
-                      size={20}
-                    />
-                  </Tooltip>
-                </div>
+          {/* Search bar toggle */}
+          <div className="bg-white border-b p-2 flex justify-between items-center">
+            <button
+              onClick={toggleSearchBar}
+              className="bg-purple-600 text-white px-4 py-2 rounded-md flex items-center"
+            >
+              <Search className="mr-2" size={20} />
+              {isSearchBarExpanded ? "Nascondi ricerca" : "Mostra ricerca"}
+            </button>
+            {!isSearchBarExpanded && (
+              <div className="text-sm text-gray-500">
+                {searchQuery && `Ricerca: "${searchQuery}"`}
               </div>
-              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                <div className="flex items-center bg-gray-100 rounded-md p-2 flex-1">
-                  <User className="text-gray-500 mr-2" size={20} />
-                  <input
-                    type="text"
-                    placeholder="Nome utente..."
-                    className="bg-transparent outline-none flex-1"
-                    value={searchUserName}
-                    onChange={(e) => setSearchUserName(e.target.value)}
-                  />
-                </div>
-                <div className="flex items-center bg-gray-100 rounded-md p-2 flex-1">
-                  <Hash className="text-gray-500 mr-2" size={20} />
-                  <input
-                    type="text"
-                    placeholder="Nome canale..."
-                    className="bg-transparent outline-none flex-1"
-                    value={searchChannelName}
-                    onChange={(e) => setSearchChannelName(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                <div className="flex items-center bg-gray-100 rounded-md p-2 flex-1">
-                  <Calendar className="text-gray-500 mr-2" size={20} />
-                  {isDateTimeSupported ? (
-                    <input
-                      type="datetime-local"
-                      className="bg-transparent outline-none flex-1"
-                      value={formatDateTimeForInput(searchStartTime)}
-                      onChange={handleDateTimeChange(setSearchStartTime)}
-                    />
-                  ) : (
-                    <input
-                      type="text"
-                      placeholder="Data inizio (YYYY-MM-DDTHH:mm)"
-                      className="bg-transparent outline-none flex-1"
-                      value={formatDateTimeForInput(searchStartTime)}
-                      onChange={handleDateTimeChange(setSearchStartTime)}
-                      pattern="\d{4}-\d{2}-\d{2}T\d{2}:\d{2}"
-                    />
-                  )}
-                </div>
-                <div className="flex items-center bg-gray-100 rounded-md p-2 flex-1">
-                  <Calendar className="text-gray-500 mr-2" size={20} />
-                  {isDateTimeSupported ? (
-                    <input
-                      type="datetime-local"
-                      className="bg-transparent outline-none flex-1"
-                      value={formatDateTimeForInput(searchEndTime)}
-                      onChange={handleDateTimeChange(setSearchEndTime)}
-                    />
-                  ) : (
-                    <input
-                      type="text"
-                      placeholder="Data fine (YYYY-MM-DDTHH:mm)"
-                      className="bg-transparent outline-none flex-1"
-                      value={formatDateTimeForInput(searchEndTime)}
-                      onChange={handleDateTimeChange(setSearchEndTime)}
-                      pattern="\d{4}-\d{2}-\d{2}T\d{2}:\d{2}"
-                    />
-                  )}
-                </div>
-              </div>
-
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="embeddingSearch"
-                  checked={useEmbeddingSearch}
-                  onChange={(e) => setUseEmbeddingSearch(e.target.checked)}
-                  className="mr-2"
-                />
-                <label htmlFor="embeddingSearch">Use Embedding Search</label>
-              </div>
-              <button
-                onClick={handleSearch}
-                className="bg-purple-600 text-white px-4 py-2 rounded-md"
-              >
-                Cerca
-              </button>
-            </div>
+            )}
           </div>
+
+          {/* Search bar */}
+          {isSearchBarExpanded && (
+            <div className="bg-white border-b p-4">
+              <div className="flex flex-col space-y-2">
+                <div className="flex items-center bg-gray-100 rounded-md p-2">
+                  <Search className="text-gray-500 mr-2" size={20} />
+                  <input
+                    type="text"
+                    placeholder="Cerca messaggi..."
+                    className="bg-transparent outline-none flex-1"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  <div className="relative">
+                    <Tooltip
+                      content={
+                        <div>
+                          <p className="font-bold mb-1">
+                            Istruzioni di ricerca:
+                          </p>
+                          <ul className="list-disc pl-4">
+                            <li>
+                              Usa le virgolette ("") per cercare una frase
+                              esatta
+                            </li>
+                            <li>
+                              Altrimenti, verranno cercate tutte le parole in
+                              qualsiasi ordine
+                            </li>
+                          </ul>
+                        </div>
+                      }
+                    >
+                      <Info
+                        className="text-gray-500 ml-2 cursor-help"
+                        size={20}
+                      />
+                    </Tooltip>
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                  <div className="flex items-center bg-gray-100 rounded-md p-2 flex-1">
+                    <User className="text-gray-500 mr-2" size={20} />
+                    <input
+                      type="text"
+                      placeholder="Nome utente..."
+                      className="bg-transparent outline-none flex-1"
+                      value={searchUserName}
+                      onChange={(e) => setSearchUserName(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex items-center bg-gray-100 rounded-md p-2 flex-1">
+                    <Hash className="text-gray-500 mr-2" size={20} />
+                    <input
+                      type="text"
+                      placeholder="Nome canale..."
+                      className="bg-transparent outline-none flex-1"
+                      value={searchChannelName}
+                      onChange={(e) => setSearchChannelName(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                  <div className="flex items-center bg-gray-100 rounded-md p-2 flex-1">
+                    <Calendar className="text-gray-500 mr-2" size={20} />
+                    {isDateTimeSupported ? (
+                      <input
+                        type="datetime-local"
+                        className="bg-transparent outline-none flex-1"
+                        value={formatDateTimeForInput(searchStartTime)}
+                        onChange={handleDateTimeChange(setSearchStartTime)}
+                      />
+                    ) : (
+                      <input
+                        type="text"
+                        placeholder="Data inizio (YYYY-MM-DDTHH:mm)"
+                        className="bg-transparent outline-none flex-1"
+                        value={formatDateTimeForInput(searchStartTime)}
+                        onChange={handleDateTimeChange(setSearchStartTime)}
+                        pattern="\d{4}-\d{2}-\d{2}T\d{2}:\d{2}"
+                      />
+                    )}
+                  </div>
+                  <div className="flex items-center bg-gray-100 rounded-md p-2 flex-1">
+                    <Calendar className="text-gray-500 mr-2" size={20} />
+                    {isDateTimeSupported ? (
+                      <input
+                        type="datetime-local"
+                        className="bg-transparent outline-none flex-1"
+                        value={formatDateTimeForInput(searchEndTime)}
+                        onChange={handleDateTimeChange(setSearchEndTime)}
+                      />
+                    ) : (
+                      <input
+                        type="text"
+                        placeholder="Data fine (YYYY-MM-DDTHH:mm)"
+                        className="bg-transparent outline-none flex-1"
+                        value={formatDateTimeForInput(searchEndTime)}
+                        onChange={handleDateTimeChange(setSearchEndTime)}
+                        pattern="\d{4}-\d{2}-\d{2}T\d{2}:\d{2}"
+                      />
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="embeddingSearch"
+                    checked={useEmbeddingSearch}
+                    onChange={(e) => setUseEmbeddingSearch(e.target.checked)}
+                    className="mr-2"
+                  />
+                  <label htmlFor="embeddingSearch">Use Embedding Search</label>
+                </div>
+                <button
+                  onClick={handleSearch}
+                  className="bg-purple-600 text-white px-4 py-2 rounded-md"
+                >
+                  Cerca
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4" onScroll={handleScroll}>
