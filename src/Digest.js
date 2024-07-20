@@ -31,7 +31,7 @@ function Digest() {
 
   const fetchDigest = async () => {
     try {
-      const response = await axios.post(`${API_URL}/generate_digest`);
+      const response = await axios.post(`${API_URL}/generate_digest`, {});
       setDigest(response.data);
       setIsLoading(false);
     } catch (error) {
