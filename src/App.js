@@ -312,7 +312,7 @@ function App() {
             <div>
               <span className="font-semibold">{username}</span> (ID: {user})
             </div>
-            <div>Opt-out: {optedOut ? "Sì" : "No"}</div>
+            <div>Opt-out from archive (WARNING): {optedOut ? "Sì" : "No"}</div>
             <div>AI Opt-out: {aiOptedOut ? "Sì" : "No"}</div>
           </div>
           <div className="flex items-center space-x-2">
