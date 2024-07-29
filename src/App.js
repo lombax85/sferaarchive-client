@@ -312,7 +312,7 @@ function App() {
             <div>
               <span className="font-semibold">{username}</span> (ID: {user})
             </div>
-            <div>Opt-out from archive (WARNING): {optedOut ? "Sì" : "No"}</div>
+            <div>Opt-out: {optedOut ? "Sì" : "No"}</div>
             <div>AI Opt-out: {aiOptedOut ? "Sì" : "No"}</div>
           </div>
           <div className="flex items-center space-x-2">
@@ -343,11 +343,11 @@ function App() {
                 onClick={handleOptOut}
                 className="bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
               >
-                Opt Out
+                Opt Out from archive (WARNING)
               </button>
               <button
                 onClick={handleAiOptOutToggle}
-                className="bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
+                className="bg-yellow-600 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
               >
                 {aiOptedOut ? "AI Opt-in" : "AI Opt-out"}
               </button>
