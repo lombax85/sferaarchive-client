@@ -15,9 +15,7 @@ import { marked } from "marked";
 import parse from "html-react-parser";
 import "./App.css";
 import emojiDatasource from "https://cdn.jsdelivr.net/npm/emoji-datasource@15.1.2/+esm";
-
-const API_URL = "https://slack-archive.sferait.org";
-//const API_URL = "http://localhost:3333";
+import { API_URL } from './config';
 
 function App() {
   const [searchQuery, setSearchQuery] = useState("");

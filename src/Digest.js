@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
-
-const API_URL = "https://slack-archive.sferait.org";
-//const API_URL = "http://localhost:3333";
+import { API_URL } from './config';
 
 function Digest() {
   const location = useLocation();
