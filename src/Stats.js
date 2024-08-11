@@ -131,7 +131,10 @@ function Stats() {
           <BarChart
             width={600}
             height={300}
-            data={stats.user_activity.slice(0, 20)}
+            data={stats.user_activity.slice(0, 20).map((user) => ({
+              ...user,
+              name: user.name === "Slackbot" ? "Utente Opt-Out" : user.name,
+            }))}
           >
             <XAxis
               dataKey="name"
