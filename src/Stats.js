@@ -212,10 +212,35 @@ function Stats() {
         {/* Engaging Threads */}
         <div>
           <h2 className="text-xl font-semibold mb-2">Top 10 Engaging Threads</h2>
-          <BarChart width={600} height={300} data={stats.engaging_threads}>
+          <BarChart 
+            width={600} 
+            height={300} 
+            data={stats.engaging_threads}
+            onClick={(data) => {
+              if (data && data.activePayload && data.activePayload[0]) {
+                const thread = data.activePayload[0].payload;
+                const url = `https://slack-archive.sferait.org/getlink?timestamp=${thread.thread_ts}`;
+                window.open(url, '_blank');
+              }
+            }}
+          >
             <XAxis dataKey="author" angle={-45} textAnchor="end" interval={0} height={60} />
             <YAxis />
-            <Tooltip />
+            <Tooltip 
+              content={({ active, payload }) => {
+                if (active && payload && payload.length) {
+                  const thread = payload[0].payload;
+                  return (
+                    <div className="bg-white p-2 border rounded shadow">
+                      <p>Author: {thread.author}</p>
+                      <p>Reply Count: {thread.reply_count}</p>
+                      <p className="text-blue-500 cursor-pointer">Click to open thread</p>
+                    </div>
+                  );
+                }
+                return null;
+              }}
+            />
             <Legend />
             <Bar dataKey="reply_count" fill="#82ca9d" label={renderCustomizedLabel} />
           </BarChart>
