@@ -9,7 +9,7 @@ import {
   Legend,
   PieChart,
   Pie,
-  Cell,
+  Cell
 } from "recharts";
 import axios from "axios";
 import { useLocation } from "react-router-dom";
@@ -195,6 +195,62 @@ function Stats() {
             />
           </BarChart>
         </div>
+
+
+      {/* Images by Author */}
+      <div>
+          <h2 className="text-xl font-semibold mb-2">Top 10 Image Posters</h2>
+          <BarChart width={400} height={300} data={stats.images_by_author}>
+            <XAxis dataKey="name" angle={-45} textAnchor="end" interval={0} height={60} />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="image_count" fill="#8884d8" label={renderCustomizedLabel} />
+          </BarChart>
+        </div>
+
+        {/* Engaging Threads */}
+        <div>
+          <h2 className="text-xl font-semibold mb-2">Top 10 Engaging Threads</h2>
+          <BarChart width={600} height={300} data={stats.engaging_threads}>
+            <XAxis dataKey="author" angle={-45} textAnchor="end" interval={0} height={60} />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="reply_count" fill="#82ca9d" label={renderCustomizedLabel} />
+          </BarChart>
+        </div>
+
+        {/* Engaging Authors */}
+        <div>
+          <h2 className="text-xl font-semibold mb-2">Top 10 Engaging Authors</h2>
+          <BarChart width={600} height={300} data={stats.engaging_authors.slice(0, 10)}>
+            <XAxis dataKey="author" angle={-45} textAnchor="end" interval={0} height={60} />
+            <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
+            <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" />
+            <Tooltip />
+            <Legend />
+            <Bar yAxisId="left" dataKey="number_of_threads" fill="#8884d8" name="Number of Threads" />
+            <Bar yAxisId="right" dataKey="avg_replies" fill="#82ca9d" name="Average Replies" />
+          </BarChart>
+        </div>
+
+        {/* Active Users by Words */}
+        <div>
+          <h2 className="text-xl font-semibold mb-2">Top 10 Active Users by Words</h2>
+          <BarChart width={700} height={300} data={stats.active_users_by_words.slice(0, 10)}>
+            <XAxis dataKey="author" angle={-45} textAnchor="end" interval={0} height={60} />
+            <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
+            <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" />
+            <Tooltip />
+            <Legend />
+            <Bar yAxisId="left" dataKey="total_words" fill="#8884d8" name="Total Words" />
+            <Bar yAxisId="left" dataKey="total_messages" fill="#ffc658" name="Total Messages" />
+            <Bar yAxisId="right" dataKey="avg_words_per_message" fill="#82ca9d" name="Avg Words per Message" />
+          </BarChart>
+        </div>
+
+
       </div>
 
       {/* Channel Trends */}
@@ -224,6 +280,7 @@ function Stats() {
           </table>
         </div>
       </div>
+
     </div>
   );
 }
