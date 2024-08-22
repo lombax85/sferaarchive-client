@@ -1,2 +1,5 @@
-export const API_URL = "https://slack-archive.sferait.org";
-//export const API_URL = "http://localhost:3333";
+const isDevelopment = process.env.NODE_ENV === 'development';
+
+export const API_URL = isDevelopment
+  ? "http://127.0.0.1:5000"
+  : "https://slack-archive.sferait.org";
