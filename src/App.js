@@ -15,7 +15,7 @@ import { marked } from "marked";
 import parse from "html-react-parser";
 import "./App.css";
 import emojiDatasource from "https://cdn.jsdelivr.net/npm/emoji-datasource@15.1.2/+esm";
-import { API_URL } from './config';
+import { API_URL } from "./config";
 
 function App() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -44,6 +44,7 @@ function App() {
   const [isDateTimeSupported, setIsDateTimeSupported] = useState(true);
   const [aiOptedOut, setAiOptedOut] = useState(false);
   const [isSearchBarExpanded, setIsSearchBarExpanded] = useState(false);
+  const [avatars, setAvatars] = useState({});
 
   useEffect(() => {
     const isIOS =
@@ -74,7 +75,14 @@ function App() {
 
       axios
         .get(API_URL + "/users")
-        .then((response) => setUserlist(response.data))
+        .then((response) => {
+          let avatars = {};
+          response.data.forEach((user) => {
+            avatars[user.name] = user.avatar;
+          });
+          setAvatars(avatars);
+          setUserlist(response.data);
+        })
         .catch((error) => console.error("Error fetching users:", error));
 
       axios
@@ -537,7 +545,15 @@ function App() {
                 }
               >
                 <div className="flex-shrink-0 mr-3">
-                  <User className="w-8 h-8 text-gray-400 bg-gray-200 rounded-full p-1" />
+                  {avatars[message.user_name] ? (
+                    <img
+                      src={avatars[message.user_name]}
+                      alt={`${message.user_name}'s avatar`}
+                      className="w-8 h-8 rounded-full"
+                    />
+                  ) : (
+                    <User className="w-8 h-8 text-gray-400 bg-gray-200 rounded-full p-1" />
+                  )}
                 </div>
                 <div className="flex-grow">
                   <div className="font-semibold">{message.user_name}</div>
@@ -576,7 +592,15 @@ function App() {
                 className="mb-4 flex items-start"
               >
                 <div className="flex-shrink-0 mr-3">
-                  <User className="w-8 h-8 text-gray-400 bg-gray-200 rounded-full p-1" />
+                  {avatars[thread.user_name] ? (
+                    <img
+                      src={avatars[thread.user_name]}
+                      alt={`${thread.user_name}'s avatar`}
+                      className="w-8 h-8 rounded-full"
+                    />
+                  ) : (
+                    <User className="w-8 h-8 text-gray-400 bg-gray-200 rounded-full p-1" />
+                  )}
                 </div>
                 <div className="flex-grow">
                   <div className="font-semibold">{thread.user_name}</div>
