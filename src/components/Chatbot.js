@@ -1,15 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Rnd } from 'react-rnd';
-import { X, Send } from 'lucide-react';
-import axios from 'axios';
-import { API_URL } from '../config';
+import { X, Send, RefreshCw } from 'lucide-react';
 
-const Chatbot = ({ position, size, onResize, onClose }) => {
-  const [messages, setMessages] = useState([
-    { user_name: 'AI', message: 'How can I help you?', timestamp: Date.now() / 1000 }
-  ]);
+const Chatbot = ({ position, size, onResize, onClose, messages, onSendMessage, onResetConversation }) => {
   const [inputMessage, setInputMessage] = useState('');
-  const [context, setContext] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
   const isMobile = window.innerWidth <= 768;
@@ -23,28 +17,10 @@ const Chatbot = ({ position, size, onResize, onClose }) => {
   const handleSendMessage = async () => {
     if (inputMessage.trim() === '') return;
 
-    const newMessage = { user_name: 'User', message: inputMessage, timestamp: Date.now() / 1000 };
-    setMessages(prevMessages => [...prevMessages, newMessage]);
-    setInputMessage('');
     setIsLoading(true);
-
-    try {
-      const response = await axios.post(`${API_URL}/chat`, {
-        message: inputMessage,
-        context: context,
-        conversation: [...messages, newMessage] // Include the new message in the conversation
-      });
-
-      if (response.data.status === 'success') {
-        setMessages(prevMessages => [...prevMessages, response.data.conversation[response.data.conversation.length - 1]]);
-      } else {
-        console.error('Error from chat API:', response.data.error);
-      }
-    } catch (error) {
-      console.error('Error sending message:', error);
-    } finally {
-      setIsLoading(false);
-    }
+    await onSendMessage(inputMessage);
+    setInputMessage('');
+    setIsLoading(false);
   };
 
   return (
@@ -76,9 +52,14 @@ const Chatbot = ({ position, size, onResize, onClose }) => {
     >
       <div className="bg-purple-700 text-white p-2 flex justify-between items-center">
         <h3 className="text-lg font-semibold">Assistant</h3>
-        <button onClick={onClose} className="text-white">
-          <X size={20} />
-        </button>
+        <div className="flex items-center">
+          <button onClick={onResetConversation} className="text-white mr-2" title="Reset conversation">
+            <RefreshCw size={20} />
+          </button>
+          <button onClick={onClose} className="text-white">
+            <X size={20} />
+          </button>
+        </div>
       </div>
       <div className="flex-1 p-4 overflow-y-auto">
         {messages.map((msg, index) => (

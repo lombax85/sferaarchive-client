@@ -51,6 +51,10 @@ function App() {
   const [chatbotPosition, setChatbotPosition] = useState({ x: 0, y: 0 });
   const [chatbotSize, setChatbotSize] = useState({ width: 300, height: 400 });
   const chatbotButtonRef = useRef(null);
+  const [chatMessages, setChatMessages] = useState([
+    { user_name: 'AI', message: 'Come posso aiutarti?', timestamp: Date.now() / 1000 }
+  ]);
+  const [chatContext, setChatContext] = useState([]);
 
   useEffect(() => {
     const isIOS =
@@ -286,8 +290,8 @@ function App() {
     if (!isChatbotOpen) {
       const buttonRect = chatbotButtonRef.current.getBoundingClientRect();
       setChatbotPosition({
-        x: buttonRect.left,
-        y: buttonRect.bottom + window.scrollY,
+        x: buttonRect.left - 50, // Sposta 50px a sinistra
+        y: buttonRect.bottom + window.scrollY + 20, // Sposta 20px in basso
       });
     }
     setIsChatbotOpen(!isChatbotOpen);
@@ -336,6 +340,35 @@ function App() {
       </p>
     </div>
   );
+
+  const handleChatMessage = async (inputMessage) => {
+    const newMessage = { user_name: 'User', message: inputMessage, timestamp: Date.now() / 1000 };
+    setChatMessages(prevMessages => [...prevMessages, newMessage]);
+
+    try {
+      const response = await axios.post(`${API_URL}/chat`, {
+        message: inputMessage,
+        context: chatContext,
+        conversation: [...chatMessages, newMessage]
+      });
+
+      if (response.data.status === 'success') {
+        setChatMessages(prevMessages => [...prevMessages, response.data.conversation[response.data.conversation.length - 1]]);
+      } else {
+        console.error('Error from chat API:', response.data.error);
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
+  };
+
+  // Aggiungi questa nuova funzione per resettare le conversazioni
+  const resetChatConversation = () => {
+    setChatMessages([
+      { user_name: 'AI', message: 'Come posso aiutarti?', timestamp: Date.now() / 1000 }
+    ]);
+    setChatContext([]);
+  };
 
   return (
     <div className="flex flex-col h-screen bg-gray-100">
@@ -671,6 +704,9 @@ function App() {
           size={chatbotSize}
           onResize={handleChatbotResize}
           onClose={() => setIsChatbotOpen(false)}
+          messages={chatMessages}
+          onSendMessage={handleChatMessage}
+          onResetConversation={resetChatConversation}
         />
       )}
     </div>
