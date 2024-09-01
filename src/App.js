@@ -55,6 +55,7 @@ function App() {
     { user_name: 'AI', message: 'Come posso aiutarti?', timestamp: Date.now() / 1000 }
   ]);
   const [chatContext, setChatContext] = useState([]);
+  const [hasSearchResults, setHasSearchResults] = useState(false);
 
   useEffect(() => {
     const isIOS =
@@ -252,10 +253,12 @@ function App() {
         setMessages(response.data);
         setSelectedChannel(null);
         setIsLoading(false);
+        setHasSearchResults(response.data.length > 0);
       })
       .catch((error) => {
         console.error("Error searching messages:", error);
         setIsLoading(false);
+        setHasSearchResults(false);
       });
   };
 
@@ -397,6 +400,20 @@ function App() {
     setChatContext(threadContext);
     setChatMessages([
       { user_name: 'AI', message: 'Fai pure le tue domande rispetto alla conversazione precedente', timestamp: Date.now() / 1000 }
+    ]);
+    setIsChatbotOpen(true);
+  };
+
+  const handleChatWithSearchResults = () => {
+    // Convert search results to the context format
+    const searchResultsContext = messages.map(msg => ({
+      user_name: msg.user_name,
+      message: msg.message
+    }));
+    
+    setChatContext(searchResultsContext);
+    setChatMessages([
+      { user_name: 'AI', message: 'Posso aiutarti con i risultati della ricerca. Cosa vorresti sapere?', timestamp: Date.now() / 1000 }
     ]);
     setIsChatbotOpen(true);
   };
@@ -625,12 +642,23 @@ function App() {
                   />
                   <label htmlFor="embeddingSearch">Use Embedding Search</label>
                 </div>
-                <button
-                  onClick={handleSearch}
-                  className="bg-purple-600 text-white px-4 py-2 rounded-md"
-                >
-                  Cerca
-                </button>
+                <div className="flex items-center justify-between">
+                  <button
+                    onClick={handleSearch}
+                    className="bg-purple-600 text-white px-4 py-2 rounded-md"
+                  >
+                    Cerca
+                  </button>
+                  {hasSearchResults && (
+                    <button
+                      onClick={handleChatWithSearchResults}
+                      className="bg-purple-600 text-white px-4 py-2 rounded-md flex items-center"
+                    >
+                      Chat with search results
+                      <MessageSquare className="ml-2" size={16} />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           )}
