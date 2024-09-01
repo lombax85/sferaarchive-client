@@ -401,7 +401,10 @@ function App() {
     setChatMessages([
       { user_name: 'AI', message: 'Fai pure le tue domande rispetto alla conversazione precedente', timestamp: Date.now() / 1000 }
     ]);
-    setIsChatbotOpen(true);
+    
+    if (!isChatbotOpen) {
+      toggleChatbot();
+    }
   };
 
   const handleChatWithSearchResults = () => {
