@@ -295,8 +295,8 @@ function App() {
         // Se è la prima apertura o non è stata impostata una posizione precedente
         const windowWidth = window.innerWidth;
         const windowHeight = window.innerHeight;
-        const chatbotWidth = 350;
-        const chatbotHeight = 450;
+        const chatbotWidth = 600;
+        const chatbotHeight = 500;
         const margin = 20;
 
         const x = windowWidth - chatbotWidth - margin;
@@ -401,7 +401,7 @@ function App() {
     setChatMessages([
       { user_name: 'AI', message: 'Fai pure le tue domande rispetto alla conversazione precedente', timestamp: Date.now() / 1000 }
     ]);
-    
+
     if (!isChatbotOpen) {
       toggleChatbot();
     }
