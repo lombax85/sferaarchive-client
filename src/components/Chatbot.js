@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Rnd } from 'react-rnd';
-import { X, Send, RefreshCw, MessageSquare } from 'lucide-react';
+import { X, Send, RefreshCw, MessageSquare, Maximize2, Minimize2 } from 'lucide-react';
 
-const Chatbot = ({ position, size, onResize, onClose, messages, onSendMessage, onResetConversation, context }) => {
+const Chatbot = ({ position, size, onResize, onClose, messages, onSendMessage, onResetConversation, context, isMobile, isMinimized, onToggleMinimize }) => {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isRndReady, setIsRndReady] = useState(false);
   const messagesEndRef = useRef(null);
   const chatbotRef = useRef(null);
-  const isMobile = window.innerWidth <= 768;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -42,84 +41,86 @@ const Chatbot = ({ position, size, onResize, onClose, messages, onSendMessage, o
           <button onClick={onResetConversation} className="text-white mr-2" title="Reset conversation">
             <RefreshCw size={20} />
           </button>
+          {isMobile && (
+            <button onClick={onToggleMinimize} className="text-white mr-2">
+              {isMinimized ? <Maximize2 size={20} /> : <Minimize2 size={20} />}
+            </button>
+          )}
           <button onClick={onClose} className="text-white">
             <X size={20} />
           </button>
         </div>
       </div>
-      <div className="flex-1 p-4 overflow-y-auto">
-        {context && context.length > 0 && (
-          <div className="mb-4 bg-gray-100 p-2 rounded-lg">
-            <p className="text-sm font-semibold mb-1">Thread Context:</p>
-            {context.map((msg, index) => (
-              <div key={index} className="text-xs mb-1">
-                <span className="font-semibold">{msg.user_name}:</span> {msg.message}
+      {!isMinimized && (
+        <>
+          <div className="flex-1 p-4 overflow-y-auto">
+            {context && context.length > 0 && (
+              <div className="mb-4 bg-gray-100 p-2 rounded-lg">
+                <p className="text-sm font-semibold mb-1">Thread Context:</p>
+                {context.map((msg, index) => (
+                  <div key={index} className="text-xs mb-1">
+                    <span className="font-semibold">{msg.user_name}:</span> {msg.message}
+                  </div>
+                ))}
+              </div>
+            )}
+            {messages.map((msg, index) => (
+              <div
+                key={index}
+                className={`mb-4 ${msg.user_name === 'AI' ? 'text-left' : 'text-right'}`}
+              >
+                <div
+                  className={`inline-block p-2 rounded-lg ${
+                    msg.user_name === 'AI' ? 'bg-gray-200 text-gray-800' : 'bg-purple-600 text-white'
+                  }`}
+                >
+                  {msg.message}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {new Date(msg.timestamp * 1000).toLocaleTimeString()}
+                </div>
               </div>
             ))}
+            <div ref={messagesEndRef} />
           </div>
-        )}
-        {messages.map((msg, index) => (
-          <div
-            key={index}
-            className={`mb-4 ${msg.user_name === 'AI' ? 'text-left' : 'text-right'}`}
-          >
-            <div
-              className={`inline-block p-2 rounded-lg ${
-                msg.user_name === 'AI' ? 'bg-gray-200 text-gray-800' : 'bg-purple-600 text-white'
-              }`}
-            >
-              {msg.message}
-            </div>
-            <div className="text-xs text-gray-500 mt-1">
-              {new Date(msg.timestamp * 1000).toLocaleTimeString()}
+          <div className="p-4 border-t">
+            <div className="flex items-center">
+              <input
+                type="text"
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                placeholder="Type your message..."
+                className="flex-1 p-2 border rounded-l-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                disabled={isLoading}
+              />
+              <button
+                onClick={handleSendMessage}
+                className="bg-purple-600 text-white p-2 rounded-r-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <div className="w-6 h-6 border-t-2 border-white rounded-full animate-spin"></div>
+                ) : (
+                  <Send size={20} />
+                )}
+              </button>
             </div>
           </div>
-        ))}
-        <div ref={messagesEndRef} />
-      </div>
-      <div className="p-4 border-t">
-        <div className="flex items-center">
-          <input
-            type="text"
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-            placeholder="Type your message..."
-            className="flex-1 p-2 border rounded-l-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
-            disabled={isLoading}
-          />
-          <button
-            onClick={handleSendMessage}
-            className="bg-purple-600 text-white p-2 rounded-r-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-600"
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <div className="w-6 h-6 border-t-2 border-white rounded-full animate-spin"></div>
-            ) : (
-              <Send size={20} />
-            )}
-          </button>
-        </div>
-      </div>
+        </>
+      )}
     </>
   );
 
-  if (!isRndReady) {
+  if (isMobile) {
     return (
       <div
+        className={`fixed inset-0 z-50 ${
+          isMinimized ? 'h-12' : 'h-full'
+        } flex flex-col bg-white transition-all duration-300 ease-in-out`}
         style={{
-          position: 'fixed',
-          left: position.x,
-          top: position.y,
-          width: size.width,
-          height: size.height,
-          display: 'flex',
-          flexDirection: 'column',
-          background: 'white',
-          boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-          borderRadius: '8px',
-          overflow: 'hidden',
-          zIndex: 1000,
+          top: isMinimized ? 'auto' : 0,
+          bottom: 0,
         }}
       >
         {chatbotContent}

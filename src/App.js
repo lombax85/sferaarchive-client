@@ -10,6 +10,8 @@ import {
   Menu,
   Info,
   MessageSquare,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { marked } from "marked";
@@ -52,10 +54,16 @@ function App() {
   const [chatbotSize, setChatbotSize] = useState({ width: 300, height: 400 });
   const chatbotButtonRef = useRef(null);
   const [chatMessages, setChatMessages] = useState([
-    { user_name: 'AI', message: 'Come posso aiutarti?', timestamp: Date.now() / 1000 }
+    {
+      user_name: "AI",
+      message: "Come posso aiutarti?",
+      timestamp: Date.now() / 1000,
+    },
   ]);
   const [chatContext, setChatContext] = useState([]);
   const [hasSearchResults, setHasSearchResults] = useState(false);
+  const [isChatbotMinimized, setIsChatbotMinimized] = useState(false);
+  const isMobile = window.innerWidth <= 768;
 
   useEffect(() => {
     const isIOS =
@@ -362,44 +370,60 @@ function App() {
   );
 
   const handleChatMessage = async (inputMessage) => {
-    const newMessage = { user_name: 'User', message: inputMessage, timestamp: Date.now() / 1000 };
-    setChatMessages(prevMessages => [...prevMessages, newMessage]);
+    const newMessage = {
+      user_name: "User",
+      message: inputMessage,
+      timestamp: Date.now() / 1000,
+    };
+    setChatMessages((prevMessages) => [...prevMessages, newMessage]);
 
     try {
       const response = await axios.post(`${API_URL}/chat`, {
         message: inputMessage,
         context: chatContext,
-        conversation: [...chatMessages, newMessage]
+        conversation: [...chatMessages, newMessage],
       });
 
-      if (response.data.status === 'success') {
-        setChatMessages(prevMessages => [...prevMessages, response.data.conversation[response.data.conversation.length - 1]]);
+      if (response.data.status === "success") {
+        setChatMessages((prevMessages) => [
+          ...prevMessages,
+          response.data.conversation[response.data.conversation.length - 1],
+        ]);
       } else {
-        console.error('Error from chat API:', response.data.error);
+        console.error("Error from chat API:", response.data.error);
       }
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error("Error sending message:", error);
     }
   };
 
   // Aggiungi questa nuova funzione per resettare le conversazioni
   const resetChatConversation = () => {
     setChatMessages([
-      { user_name: 'AI', message: 'Come posso aiutarti?', timestamp: Date.now() / 1000 }
+      {
+        user_name: "AI",
+        message: "Come posso aiutarti?",
+        timestamp: Date.now() / 1000,
+      },
     ]);
     setChatContext([]);
   };
 
   const handleChatWithThread = () => {
     // Convert thread messages to the context format
-    const threadContext = threadMessages.map(msg => ({
+    const threadContext = threadMessages.map((msg) => ({
       user_name: msg.user_name,
-      message: msg.message
+      message: msg.message,
     }));
-    
+
     setChatContext(threadContext);
     setChatMessages([
-      { user_name: 'AI', message: 'Fai pure le tue domande rispetto alla conversazione precedente', timestamp: Date.now() / 1000 }
+      {
+        user_name: "AI",
+        message:
+          "Fai pure le tue domande rispetto alla conversazione precedente",
+        timestamp: Date.now() / 1000,
+      },
     ]);
 
     if (!isChatbotOpen) {
@@ -409,19 +433,28 @@ function App() {
 
   const handleChatWithSearchResults = () => {
     // Convert search results to the context format
-    const searchResultsContext = messages.map(msg => ({
+    const searchResultsContext = messages.map((msg) => ({
       user_name: msg.user_name,
-      message: msg.message
+      message: msg.message,
     }));
-    
+
     setChatContext(searchResultsContext);
     setChatMessages([
-      { user_name: 'AI', message: 'Posso aiutarti con i risultati della ricerca. Cosa vorresti sapere?', timestamp: Date.now() / 1000 }
+      {
+        user_name: "AI",
+        message:
+          "Posso aiutarti con i risultati della ricerca. Cosa vorresti sapere?",
+        timestamp: Date.now() / 1000,
+      },
     ]);
-    
+
     if (!isChatbotOpen) {
       toggleChatbot();
     }
+  };
+
+  const toggleChatbotMinimize = () => {
+    setIsChatbotMinimized(!isChatbotMinimized);
   };
 
   return (
@@ -430,13 +463,6 @@ function App() {
       {/* User info bar */}
       <div className="bg-purple-700 text-white p-2">
         <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <div>
-              <span className="font-semibold">{username}</span> (ID: {user})
-            </div>
-            <div>Opt-out: {optedOut ? "Sì" : "No"}</div>
-            <div>AI Opt-out: {aiOptedOut ? "Sì" : "No"}</div>
-          </div>
           <div className="flex items-center space-x-2">
             <button
               ref={chatbotButtonRef}
@@ -468,6 +494,13 @@ function App() {
         </div>
         {isAccordionOpen && (
           <div className="mt-2 p-2 bg-purple-800 rounded text-sm">
+            <div className="flex items-center space-x-4">
+              <div>
+                <span className="font-semibold">{username}</span> (ID: {user})
+              </div>
+              <div>Opt-out: {optedOut ? "Sì" : "No"}</div>
+              <div>AI Opt-out: {aiOptedOut ? "Sì" : "No"}</div>
+            </div>
             <div className="flex space-x-2">
               <button
                 onClick={handleOptOut}
@@ -782,6 +815,9 @@ function App() {
           onSendMessage={handleChatMessage}
           onResetConversation={resetChatConversation}
           context={chatContext}
+          isMobile={isMobile}
+          isMinimized={isChatbotMinimized}
+          onToggleMinimize={toggleChatbotMinimize}
         />
       )}
     </div>
