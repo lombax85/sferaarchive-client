@@ -5,7 +5,9 @@ import { X, Send, RefreshCw, MessageSquare } from 'lucide-react';
 const Chatbot = ({ position, size, onResize, onClose, messages, onSendMessage, onResetConversation, context }) => {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isRndReady, setIsRndReady] = useState(false);
   const messagesEndRef = useRef(null);
+  const chatbotRef = useRef(null);
   const isMobile = window.innerWidth <= 768;
 
   const scrollToBottom = () => {
@@ -13,6 +15,10 @@ const Chatbot = ({ position, size, onResize, onClose, messages, onSendMessage, o
   };
 
   useEffect(scrollToBottom, [messages]);
+
+  useEffect(() => {
+    setIsRndReady(true);
+  }, []);
 
   const handleSendMessage = async () => {
     if (inputMessage.trim() === '') return;
@@ -23,33 +29,8 @@ const Chatbot = ({ position, size, onResize, onClose, messages, onSendMessage, o
     setIsLoading(false);
   };
 
-  return (
-    <Rnd
-      default={{
-        x: position.x,
-        y: position.y,
-        width: size.width,
-        height: size.height,
-      }}
-      minWidth={300}
-      minHeight={400}
-      bounds="window"
-      onDragStop={(e, d) => onResize(null, null, null, null, { x: d.x, y: d.y })}
-      onResize={(e, direction, ref, delta, position) =>
-        onResize(e, direction, ref, delta, position)
-      }
-      disableDragging={isMobile}
-      enableResizing={!isMobile}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        background: 'white',
-        boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-        borderRadius: '8px',
-        overflow: 'hidden',
-      }}
-      className={isMobile ? 'fixed inset-0 z-50' : ''}
-    >
+  const chatbotContent = (
+    <>
       <div className="bg-purple-700 text-white p-2 flex justify-between items-center">
         <h3 className="text-lg font-semibold">Assistant</h3>
         <div className="flex items-center">
@@ -120,6 +101,61 @@ const Chatbot = ({ position, size, onResize, onClose, messages, onSendMessage, o
           </button>
         </div>
       </div>
+    </>
+  );
+
+  if (!isRndReady) {
+    return (
+      <div
+        style={{
+          position: 'fixed',
+          left: position.x,
+          top: position.y,
+          width: size.width,
+          height: size.height,
+          display: 'flex',
+          flexDirection: 'column',
+          background: 'white',
+          boxShadow: '0 0 10px rgba(0,0,0,0.1)',
+          borderRadius: '8px',
+          overflow: 'hidden',
+          zIndex: 1000,
+        }}
+      >
+        {chatbotContent}
+      </div>
+    );
+  }
+
+  return (
+    <Rnd
+      ref={chatbotRef}
+      default={{
+        x: position.x,
+        y: position.y,
+        width: size.width,
+        height: size.height,
+      }}
+      minWidth={300}
+      minHeight={400}
+      bounds="window"
+      onDragStop={(e, d) => onResize(null, null, null, null, { x: d.x, y: d.y })}
+      onResize={(e, direction, ref, delta, position) =>
+        onResize(e, direction, ref, delta, position)
+      }
+      disableDragging={isMobile}
+      enableResizing={!isMobile}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        background: 'white',
+        boxShadow: '0 0 10px rgba(0,0,0,0.1)',
+        borderRadius: '8px',
+        overflow: 'hidden',
+      }}
+      className={isMobile ? 'fixed inset-0 z-50' : ''}
+    >
+      {chatbotContent}
     </Rnd>
   );
 };
