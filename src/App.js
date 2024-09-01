@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import {
   Hash,
@@ -9,6 +9,7 @@ import {
   User,
   Menu,
   Info,
+  MessageSquare,
 } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { marked } from "marked";
@@ -16,6 +17,7 @@ import parse from "html-react-parser";
 import "./App.css";
 import emojiDatasource from "https://cdn.jsdelivr.net/npm/emoji-datasource@15.1.2/+esm";
 import { API_URL } from "./config";
+import Chatbot from "./components/Chatbot";
 
 function App() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -45,6 +47,10 @@ function App() {
   const [aiOptedOut, setAiOptedOut] = useState(false);
   const [isSearchBarExpanded, setIsSearchBarExpanded] = useState(false);
   const [avatars, setAvatars] = useState({});
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+  const [chatbotPosition, setChatbotPosition] = useState({ x: 0, y: 0 });
+  const [chatbotSize, setChatbotSize] = useState({ width: 300, height: 400 });
+  const chatbotButtonRef = useRef(null);
 
   useEffect(() => {
     const isIOS =
@@ -276,6 +282,29 @@ function App() {
     setIsAccordionOpen(!isAccordionOpen);
   };
 
+  const toggleChatbot = () => {
+    if (!isChatbotOpen) {
+      const buttonRect = chatbotButtonRef.current.getBoundingClientRect();
+      setChatbotPosition({
+        x: buttonRect.left,
+        y: buttonRect.bottom + window.scrollY,
+      });
+    }
+    setIsChatbotOpen(!isChatbotOpen);
+  };
+
+  const handleChatbotResize = (e, direction, ref, delta, position) => {
+    if (ref) {
+      // This is a resize operation
+      setChatbotSize({
+        width: ref.style.width,
+        height: ref.style.height,
+      });
+    }
+    // Update position for both resize and drag operations
+    setChatbotPosition(position);
+  };
+
   const Tooltip = ({ content, children }) => {
     const [isVisible, setIsVisible] = useState(false);
 
@@ -322,6 +351,14 @@ function App() {
             <div>AI Opt-out: {aiOptedOut ? "Sì" : "No"}</div>
           </div>
           <div className="flex items-center space-x-2">
+            <button
+              ref={chatbotButtonRef}
+              onClick={toggleChatbot}
+              className="bg-purple-800 hover:bg-purple-600 text-white font-bold py-1 px-2 rounded flex items-center text-sm"
+            >
+              Assistant
+              <MessageSquare className="ml-1" size={16} />
+            </button>
             <button
               onClick={toggleAccordion}
               className="bg-purple-800 hover:bg-purple-600 text-white font-bold py-1 px-2 rounded flex items-center text-sm"
@@ -627,6 +664,15 @@ function App() {
           </div>
         )}
       </div>
+
+      {isChatbotOpen && (
+        <Chatbot
+          position={chatbotPosition}
+          size={chatbotSize}
+          onResize={handleChatbotResize}
+          onClose={() => setIsChatbotOpen(false)}
+        />
+      )}
     </div>
   );
 }
