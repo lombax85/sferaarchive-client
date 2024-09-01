@@ -288,25 +288,42 @@ function App() {
 
   const toggleChatbot = () => {
     if (!isChatbotOpen) {
-      const buttonRect = chatbotButtonRef.current.getBoundingClientRect();
-      setChatbotPosition({
-        x: buttonRect.left - 50, // Sposta 50px a sinistra
-        y: buttonRect.bottom + window.scrollY + 20, // Sposta 20px in basso
-      });
+      if (chatbotPosition.x === 0 && chatbotPosition.y === 0) {
+        // Se è la prima apertura o non è stata impostata una posizione precedente
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+        const chatbotWidth = 350;
+        const chatbotHeight = 450;
+        const margin = 20;
+
+        const x = windowWidth - chatbotWidth - margin;
+        const y = windowHeight - chatbotHeight - margin;
+
+        setChatbotPosition({ x, y });
+      }
+      // Altrimenti, usa la posizione salvata nello state
     }
     setIsChatbotOpen(!isChatbotOpen);
   };
 
   const handleChatbotResize = (e, direction, ref, delta, position) => {
-    if (ref) {
-      // This is a resize operation
-      setChatbotSize({
-        width: ref.style.width,
-        height: ref.style.height,
-      });
-    }
-    // Update position for both resize and drag operations
-    setChatbotPosition(position);
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+
+    let newWidth = ref ? parseInt(ref.style.width) : chatbotSize.width;
+    let newHeight = ref ? parseInt(ref.style.height) : chatbotSize.height;
+    let newX = position.x;
+    let newY = position.y;
+
+    // Assicurati che il chatbot non esca dalla finestra
+    if (newX < 0) newX = 0;
+    if (newY < 0) newY = 0;
+    if (newX + newWidth > windowWidth) newX = windowWidth - newWidth;
+    if (newY + newHeight > windowHeight) newY = windowHeight - newHeight;
+
+    const newPosition = { x: newX, y: newY };
+    setChatbotSize({ width: newWidth, height: newHeight });
+    setChatbotPosition(newPosition);
   };
 
   const Tooltip = ({ content, children }) => {
@@ -368,6 +385,20 @@ function App() {
       { user_name: 'AI', message: 'Come posso aiutarti?', timestamp: Date.now() / 1000 }
     ]);
     setChatContext([]);
+  };
+
+  const handleChatWithThread = () => {
+    // Convert thread messages to the context format
+    const threadContext = threadMessages.map(msg => ({
+      user_name: msg.user_name,
+      message: msg.message
+    }));
+    
+    setChatContext(threadContext);
+    setChatMessages([
+      { user_name: 'AI', message: 'Fai pure le tue domande rispetto alla conversazione precedente', timestamp: Date.now() / 1000 }
+    ]);
+    setIsChatbotOpen(true);
   };
 
   return (
@@ -650,11 +681,20 @@ function App() {
           <div className="w-full lg:w-1/3 bg-white border-l p-4 overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold">Thread</h3>
-              <ChevronDown
-                className="cursor-pointer"
-                size={20}
-                onClick={() => setSelectedThread(null)}
-              />
+              <div className="flex items-center">
+                <button
+                  onClick={handleChatWithThread}
+                  className="bg-purple-600 text-white px-2 py-1 rounded-md flex items-center mr-2 text-sm"
+                >
+                  Chat with thread
+                  <MessageSquare className="ml-1" size={16} />
+                </button>
+                <ChevronDown
+                  className="cursor-pointer"
+                  size={20}
+                  onClick={() => setSelectedThread(null)}
+                />
+              </div>
             </div>
             {threadMessages.map((thread) => (
               <div
@@ -707,6 +747,7 @@ function App() {
           messages={chatMessages}
           onSendMessage={handleChatMessage}
           onResetConversation={resetChatConversation}
+          context={chatContext}
         />
       )}
     </div>

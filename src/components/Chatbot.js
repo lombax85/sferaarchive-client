@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Rnd } from 'react-rnd';
-import { X, Send, RefreshCw } from 'lucide-react';
+import { X, Send, RefreshCw, MessageSquare } from 'lucide-react';
 
-const Chatbot = ({ position, size, onResize, onClose, messages, onSendMessage, onResetConversation }) => {
+const Chatbot = ({ position, size, onResize, onClose, messages, onSendMessage, onResetConversation, context }) => {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
@@ -53,6 +53,11 @@ const Chatbot = ({ position, size, onResize, onClose, messages, onSendMessage, o
       <div className="bg-purple-700 text-white p-2 flex justify-between items-center">
         <h3 className="text-lg font-semibold">Assistant</h3>
         <div className="flex items-center">
+          {context && context.length > 0 && (
+            <button className="text-white mr-2" title="Thread context is active">
+              <MessageSquare size={20} />
+            </button>
+          )}
           <button onClick={onResetConversation} className="text-white mr-2" title="Reset conversation">
             <RefreshCw size={20} />
           </button>
@@ -62,6 +67,16 @@ const Chatbot = ({ position, size, onResize, onClose, messages, onSendMessage, o
         </div>
       </div>
       <div className="flex-1 p-4 overflow-y-auto">
+        {context && context.length > 0 && (
+          <div className="mb-4 bg-gray-100 p-2 rounded-lg">
+            <p className="text-sm font-semibold mb-1">Thread Context:</p>
+            {context.map((msg, index) => (
+              <div key={index} className="text-xs mb-1">
+                <span className="font-semibold">{msg.user_name}:</span> {msg.message}
+              </div>
+            ))}
+          </div>
+        )}
         {messages.map((msg, index) => (
           <div
             key={index}
