@@ -463,18 +463,26 @@ function App() {
       {/* User info bar */}
       <div className="bg-purple-700 text-white p-2">
         <div className="flex justify-between items-center">
+          <button
+            onClick={toggleAccordion}
+            className="bg-purple-800 hover:bg-purple-600 text-white font-bold py-1 px-2 rounded flex items-center text-sm"
+          >
+            Opzioni Avanzate
+            <ChevronDown
+              className={`ml-1 transform ${
+                isAccordionOpen ? "rotate-180" : ""
+              }`}
+              size={16}
+            />
+          </button>
           <div className="flex items-center space-x-2">
             <button
-              onClick={toggleAccordion}
+              ref={chatbotButtonRef}
+              onClick={toggleChatbot}
               className="bg-purple-800 hover:bg-purple-600 text-white font-bold py-1 px-2 rounded flex items-center text-sm"
             >
-              Opzioni Avanzate
-              <ChevronDown
-                className={`ml-1 transform ${
-                  isAccordionOpen ? "rotate-180" : ""
-                }`}
-                size={16}
-              />
+              Assistant
+              <MessageSquare className="ml-1" size={16} />
             </button>
             <button
               onClick={toggleSidebar}
@@ -483,14 +491,6 @@ function App() {
               <Menu size={20} />
             </button>
           </div>
-          <button
-            ref={chatbotButtonRef}
-            onClick={toggleChatbot}
-            className="bg-purple-800 hover:bg-purple-600 text-white font-bold py-1 px-2 rounded flex items-center text-sm"
-          >
-            Assistant
-            <MessageSquare className="ml-1" size={16} />
-          </button>
         </div>
         {isAccordionOpen && (
           <div className="mt-2 p-2 bg-purple-800 rounded text-sm">
