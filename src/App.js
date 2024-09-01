@@ -230,7 +230,7 @@ function App() {
     axios
       .get(API_URL + "/optout_ai")
       .then((response) => {
-        setAiOptedOut(response.data.ai_opted_out);
+        setAiOptedOut(response.data.opted_out_ai);
       })
       .catch((error) => console.error("Error toggling AI opt-out:", error));
   };
