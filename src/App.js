@@ -418,7 +418,10 @@ function App() {
     setChatMessages([
       { user_name: 'AI', message: 'Posso aiutarti con i risultati della ricerca. Cosa vorresti sapere?', timestamp: Date.now() / 1000 }
     ]);
-    setIsChatbotOpen(true);
+    
+    if (!isChatbotOpen) {
+      toggleChatbot();
+    }
   };
 
   return (
