@@ -717,10 +717,10 @@ function App() {
                     <img
                       src={avatars[message.user_name]}
                       alt={`${message.user_name}'s avatar`}
-                      className="w-8 h-8 rounded-full"
+                      className="w-8 h-8 rounded-full transition-transform duration-200 ease-in-out hover:scale-125"
                     />
                   ) : (
-                    <User className="w-8 h-8 text-gray-400 bg-gray-200 rounded-full p-1" />
+                    <User className="w-8 h-8 text-gray-400 bg-gray-200 rounded-full p-1 transition-transform duration-200 ease-in-out hover:scale-125" />
                   )}
                 </div>
                 <div className="flex-grow">
@@ -773,10 +773,10 @@ function App() {
                     <img
                       src={avatars[thread.user_name]}
                       alt={`${thread.user_name}'s avatar`}
-                      className="w-8 h-8 rounded-full"
+                      className="w-8 h-8 rounded-full transition-transform duration-200 ease-in-out hover:scale-125"
                     />
                   ) : (
-                    <User className="w-8 h-8 text-gray-400 bg-gray-200 rounded-full p-1" />
+                    <User className="w-8 h-8 text-gray-400 bg-gray-200 rounded-full p-1 transition-transform duration-200 ease-in-out hover:scale-125" />
                   )}
                 </div>
                 <div className="flex-grow">
