@@ -58,14 +58,17 @@ function Stats() {
   };
 
   const handleDownloadUsers = () => {
-    axios.get(`${API_URL}/download_users`, { responseType: 'blob' })
+    axios.get(`${API_URL}/download_users`)
       .then(response => {
-        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const csvContent = response.data.csv;
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', 'users.csv');
+        link.setAttribute('download', response.data.filename || 'users.csv');
         document.body.appendChild(link);
         link.click();
+        document.body.removeChild(link);
       })
       .catch(error => {
         console.error("Error downloading users:", error);
