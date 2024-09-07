@@ -280,16 +280,47 @@ function Stats() {
 
       {/* Inactive Users Section */}
       <div className="mt-8">
-        <h2 className="text-2xl font-semibold mb-4">Inactive Users</h2>
-        <div>
-          <h3 className="text-xl font-semibold mb-2">Top 20 Inactive Users</h3>
-          <BarChart width={800} height={400} data={stats.inactive_users}>
-            <XAxis dataKey="user_name" angle={-45} textAnchor="end" interval={0} height={60} />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="days_inactive" fill="#FF8042" name="Days Inactive" label={renderCustomizedLabel} />
-          </BarChart>
+        <h2 className="text-2xl font-semibold mb-4">Inactive Users (120+ days)</h2>
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white">
+            <thead>
+              <tr>
+                <th className="px-4 py-2">User Name</th>
+                <th className="px-4 py-2">Days Inactive</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stats.inactive_users.map((user, index) => (
+                <tr key={index} className={index % 2 === 0 ? "bg-gray-100" : ""}>
+                  <td className="px-4 py-2">{user.user_name}</td>
+                  <td className="px-4 py-2">{user.days_inactive}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Deleted Users Section */}
+      <div className="mt-8">
+        <h2 className="text-2xl font-semibold mb-4">Deleted Users</h2>
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white">
+            <thead>
+              <tr>
+                <th className="px-4 py-2">User Name</th>
+                <th className="px-4 py-2">User ID</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stats.deleted_users.map((user, index) => (
+                <tr key={index} className={index % 2 === 0 ? "bg-gray-100" : ""}>
+                  <td className="px-4 py-2">{user.name}</td>
+                  <td className="px-4 py-2">{user.id}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
