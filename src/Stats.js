@@ -196,18 +196,6 @@ function Stats() {
           </BarChart>
         </div>
 
-        {/* Inactive Users */}
-        <div>
-          <h2 className="text-xl font-semibold mb-2">Top 20 Inactive Users</h2>
-          <BarChart width={600} height={300} data={stats.inactive_users}>
-            <XAxis dataKey="user_name" angle={-45} textAnchor="end" interval={0} height={60} />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="days_inactive" fill="#FF8042" name="Days Inactive" label={renderCustomizedLabel} />
-          </BarChart>
-        </div>
-
         {/* Images by Author */}
         <div>
           <h2 className="text-xl font-semibold mb-2">Top 10 Image Posters</h2>
@@ -285,12 +273,25 @@ function Stats() {
             <Bar yAxisId="right" dataKey="avg_words_per_message" fill="#82ca9d" name="Avg Words per Message" />
           </BarChart>
         </div>
-
-
       </div>
 
-      {/* Remove the Channel Trends section */}
+      {/* Separator */}
+      <hr className="my-8 border-t-2 border-gray-300" />
 
+      {/* Inactive Users Section */}
+      <div className="mt-8">
+        <h2 className="text-2xl font-semibold mb-4">Inactive Users</h2>
+        <div>
+          <h3 className="text-xl font-semibold mb-2">Top 20 Inactive Users</h3>
+          <BarChart width={800} height={400} data={stats.inactive_users}>
+            <XAxis dataKey="user_name" angle={-45} textAnchor="end" interval={0} height={60} />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="days_inactive" fill="#FF8042" name="Days Inactive" label={renderCustomizedLabel} />
+          </BarChart>
+        </div>
+      </div>
     </div>
   );
 }
