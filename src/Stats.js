@@ -196,9 +196,20 @@ function Stats() {
           </BarChart>
         </div>
 
+        {/* Inactive Users */}
+        <div>
+          <h2 className="text-xl font-semibold mb-2">Top 20 Inactive Users</h2>
+          <BarChart width={600} height={300} data={stats.inactive_users}>
+            <XAxis dataKey="user_name" angle={-45} textAnchor="end" interval={0} height={60} />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="days_inactive" fill="#FF8042" name="Days Inactive" label={renderCustomizedLabel} />
+          </BarChart>
+        </div>
 
-      {/* Images by Author */}
-      <div>
+        {/* Images by Author */}
+        <div>
           <h2 className="text-xl font-semibold mb-2">Top 10 Image Posters</h2>
           <BarChart width={400} height={300} data={stats.images_by_author}>
             <XAxis dataKey="name" angle={-45} textAnchor="end" interval={0} height={60} />
@@ -278,33 +289,7 @@ function Stats() {
 
       </div>
 
-      {/* Channel Trends */}
-      <div className="mt-8">
-        <h2 className="text-xl font-semibold mb-2">Channel Trends</h2>
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white">
-            <thead>
-              <tr>
-                <th className="px-4 py-2">Channel</th>
-                <th className="px-4 py-2">Thread Count</th>
-                <th className="px-4 py-2">Total Posts</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stats.channel_trends.map((channel, index) => (
-                <tr
-                  key={index}
-                  className={index % 2 === 0 ? "bg-gray-100" : ""}
-                >
-                  <td className="px-4 py-2">{channel.name}</td>
-                  <td className="px-4 py-2">{channel.thread_count}</td>
-                  <td className="px-4 py-2">{channel.total_posts}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      {/* Remove the Channel Trends section */}
 
     </div>
   );
