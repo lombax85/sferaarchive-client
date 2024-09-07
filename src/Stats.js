@@ -18,6 +18,7 @@ function Stats() {
   const [stats, setStats] = useState(null);
   const [days, setDays] = useState(30);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
@@ -27,8 +28,17 @@ function Stats() {
 
     if (token) {
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      axios
-        .get(`${API_URL}/stats?days=${days}`, {})
+      
+      // Fetch user info to check if admin
+      axios.get(`${API_URL}/whoami`)
+        .then(response => {
+          setIsAdmin(response.data.is_admin);
+        })
+        .catch(error => {
+          console.error("Error fetching user info:", error);
+        });
+
+      axios.get(`${API_URL}/stats?days=${days}`, {})
         .then((response) => response.data)
         .then((data) => {
           setStats(data);
@@ -45,6 +55,21 @@ function Stats() {
 
   const handleDaysChange = (event) => {
     setDays(parseInt(event.target.value));
+  };
+
+  const handleDownloadUsers = () => {
+    axios.get(`${API_URL}/download_users`, { responseType: 'blob' })
+      .then(response => {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'users.csv');
+        document.body.appendChild(link);
+        link.click();
+      })
+      .catch(error => {
+        console.error("Error downloading users:", error);
+      });
   };
 
   if (loading) return <div>Loading...</div>;
@@ -96,6 +121,14 @@ function Stats() {
           <option value="180">180 days</option>
           <option value="365">365 days</option>
         </select>
+        {isAdmin && (
+          <button
+            onClick={handleDownloadUsers}
+            className="ml-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Download Users
+          </button>
+        )}
       </div>
 
       <p className="text-lg font-semibold mb-4">
@@ -285,14 +318,16 @@ function Stats() {
           <table className="min-w-full bg-white">
             <thead>
               <tr>
-                <th className="px-4 py-2">User Name</th>
+                <th className="px-4 py-2">Real Name</th>
+                <th className="px-4 py-2">Display Name</th>
                 <th className="px-4 py-2">Days Inactive</th>
               </tr>
             </thead>
             <tbody>
               {stats.inactive_users.map((user, index) => (
                 <tr key={index} className={index % 2 === 0 ? "bg-gray-100" : ""}>
-                  <td className="px-4 py-2">{user.user_name}</td>
+                  <td className="px-4 py-2">{user.real_name}</td>
+                  <td className="px-4 py-2">{user.display_name}</td>
                   <td className="px-4 py-2">{user.days_inactive}</td>
                 </tr>
               ))}
@@ -308,14 +343,16 @@ function Stats() {
           <table className="min-w-full bg-white">
             <thead>
               <tr>
-                <th className="px-4 py-2">User Name</th>
+                <th className="px-4 py-2">Real Name</th>
+                <th className="px-4 py-2">Display Name</th>
                 <th className="px-4 py-2">User ID</th>
               </tr>
             </thead>
             <tbody>
               {stats.deleted_users.map((user, index) => (
                 <tr key={index} className={index % 2 === 0 ? "bg-gray-100" : ""}>
-                  <td className="px-4 py-2">{user.name}</td>
+                  <td className="px-4 py-2">{user.real_name}</td>
+                  <td className="px-4 py-2">{user.display_name}</td>
                   <td className="px-4 py-2">{user.id}</td>
                 </tr>
               ))}
