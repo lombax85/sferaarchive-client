@@ -22,7 +22,7 @@ const EXCLUDED_INACTIVE_USERS = [
   "Matrix Bridge",
   "slack-archive-bot",
   "slinky",
-  "Github",
+  "GitHub",
 ];
 
 function Stats() {
