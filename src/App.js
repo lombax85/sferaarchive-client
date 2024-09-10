@@ -826,7 +826,7 @@ function App() {
             {messages.map((message) => (
               <div
                 key={message.timestamp}
-                className="mb-4 cursor-pointer hover:bg-gray-100 p-2 rounded flex items-start"
+                className="mb-4 cursor-pointer hover:bg-gray-200 p-2 rounded flex items-start transition-colors duration-200"
                 onClick={() =>
                   handleThreadSelect(message.thread_ts || message.timestamp)
                 }
@@ -885,7 +885,7 @@ function App() {
             {threadMessages.map((thread) => (
               <div
                 key={thread.timestamp + "_thread"}
-                className="mb-4 flex items-start"
+                className="mb-4 flex items-start p-2 rounded hover:bg-gray-100 transition-colors duration-200"
               >
                 <div className="flex-shrink-0 mr-3">
                   {avatars[thread.user_name] ? (
