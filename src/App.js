@@ -643,8 +643,10 @@ function App() {
             {filteredChannels.map((channel) => (
               <li
                 key={channel.id}
-                className={`flex items-center mb-2 cursor-pointer ${
-                  selectedChannel === channel.id ? "bg-purple-800" : ""
+                className={`flex items-center mb-2 cursor-pointer p-2 rounded transition-colors duration-200 ${
+                  selectedChannel === channel.id 
+                    ? "bg-purple-800" 
+                    : "hover:bg-purple-700"
                 }`}
                 onClick={() => handleChannelSelect(channel.id)}
               >
