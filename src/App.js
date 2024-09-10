@@ -10,8 +10,8 @@ import {
   Menu,
   Info,
   MessageSquare,
-  Maximize2,
-  Minimize2,
+  ArrowUpDown,
+  ArrowUp,
 } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { marked } from "marked";
@@ -65,6 +65,8 @@ function App() {
   const [isChatbotMinimized, setIsChatbotMinimized] = useState(false);
   const isMobile = window.innerWidth <= 768;
   const [channelSearchQuery, setChannelSearchQuery] = useState("");
+  const [sortOrder, setSortOrder] = useState("date");
+  const [tooltipVisible, setTooltipVisible] = useState(false); // Stato per la visibilità del tooltip
 
   useEffect(() => {
     const isIOS =
@@ -456,11 +458,23 @@ function App() {
     setIsChatbotMinimized(!isChatbotMinimized);
   };
 
+  const toggleSortOrder = () => {
+    setSortOrder((prevOrder) => (prevOrder === "date" ? "alphabetical" : "date"));
+  };
+
   const filteredChannels = useMemo(() => {
-    return channels.filter((channel) =>
-      channel.name.toLowerCase().includes(channelSearchQuery.toLowerCase())
-    );
-  }, [channels, channelSearchQuery]);
+    return channels
+      .filter((channel) =>
+        channel.name.toLowerCase().includes(channelSearchQuery.toLowerCase())
+      )
+      .sort((a, b) => {
+        if (sortOrder === "date") {
+          return b.last_message_timestamp - a.last_message_timestamp; // Ordinamento decrescente
+        } else {
+          return a.name.localeCompare(b.name); // Ordinamento alfabetico
+        }
+      });
+  }, [channels, channelSearchQuery, sortOrder]);
 
   return (
     <div className="flex flex-col h-screen bg-gray-100">
@@ -535,8 +549,27 @@ function App() {
             isSidebarOpen ? "block" : "hidden"
           } lg:block w-64 bg-purple-900 text-white p-4 overflow-y-auto`}
         >
-          <h1 className="text-2xl font-bold mb-4">Canali</h1>
           <div className="mb-4">
+            <div className="flex items-center justify-between mb-4">
+              <h1 className="text-2xl font-bold">Canali</h1>
+              <div className="relative">
+                <button
+                  onClick={toggleSortOrder}
+                  className="flex items-center"
+                  onMouseEnter={() => setTooltipVisible(true)}
+                  onMouseLeave={() => setTooltipVisible(false)}
+                >
+                  <ArrowUpDown size={20} className="text-white" />
+                </button>
+                {tooltipVisible && (
+                  <div className="absolute right-0 top-full mt-1 z-10">
+                    <span className="bg-gray-800 text-white text-xs p-1 rounded whitespace-nowrap">
+                      Ordinamento: {sortOrder === "date" ? "Data ultimo post" : "Alfabetico"}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
             <input
               type="text"
               placeholder="Cerca canali..."
