@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import axios from "axios";
 import {
   Hash,
@@ -64,6 +64,7 @@ function App() {
   const [hasSearchResults, setHasSearchResults] = useState(false);
   const [isChatbotMinimized, setIsChatbotMinimized] = useState(false);
   const isMobile = window.innerWidth <= 768;
+  const [channelSearchQuery, setChannelSearchQuery] = useState("");
 
   useEffect(() => {
     const isIOS =
@@ -455,6 +456,12 @@ function App() {
     setIsChatbotMinimized(!isChatbotMinimized);
   };
 
+  const filteredChannels = useMemo(() => {
+    return channels.filter((channel) =>
+      channel.name.toLowerCase().includes(channelSearchQuery.toLowerCase())
+    );
+  }, [channels, channelSearchQuery]);
+
   return (
     <div className="flex flex-col h-screen bg-gray-100">
       {isLoading && <Spinner />}
@@ -529,8 +536,17 @@ function App() {
           } lg:block w-64 bg-purple-900 text-white p-4 overflow-y-auto`}
         >
           <h1 className="text-2xl font-bold mb-4">Canali</h1>
+          <div className="mb-4">
+            <input
+              type="text"
+              placeholder="Cerca canali..."
+              className="w-full px-3 py-2 bg-purple-800 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
+              value={channelSearchQuery}
+              onChange={(e) => setChannelSearchQuery(e.target.value)}
+            />
+          </div>
           <ul>
-            {channels.map((channel) => (
+            {filteredChannels.map((channel) => (
               <li
                 key={channel.id}
                 className={`flex items-center mb-2 cursor-pointer ${
