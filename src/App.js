@@ -459,7 +459,9 @@ function App() {
   };
 
   const toggleSortOrder = () => {
-    setSortOrder((prevOrder) => (prevOrder === "date" ? "alphabetical" : "date"));
+    setSortOrder((prevOrder) =>
+      prevOrder === "date" ? "alphabetical" : "date"
+    );
   };
 
   const filteredChannels = useMemo(() => {
@@ -475,6 +477,62 @@ function App() {
         }
       });
   }, [channels, channelSearchQuery, sortOrder]);
+
+  const handleChatWithChannel = async () => {
+    if (!selectedChannel) return;
+
+    const channel = channels.find((c) => c.id === selectedChannel);
+    if (!channel) return;
+
+    setSearchChannelName(channel.name);
+
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(endDate.getDate() - 90);
+
+    setSearchStartTime(startDate.toISOString().slice(0, 16));
+    setSearchEndTime(endDate.toISOString().slice(0, 16));
+
+    if (!isSearchBarExpanded) {
+      setIsSearchBarExpanded(true);
+    }
+
+    // Clear other search fields
+    setSearchQuery("");
+    setSearchUserName("");
+
+    // Perform the search and wait for it to complete
+    await new Promise((resolve) => {
+      setIsLoading(true);
+      const searchParams = new URLSearchParams({
+        query: searchQuery,
+        user_name: searchUserName,
+        channel_name: channel.name,
+        start_time: startDate.toISOString().slice(0, 16),
+        end_time: endDate.toISOString().slice(0, 16),
+      });
+
+      const searchEndpoint = useEmbeddingSearch
+        ? "searchEmbeddings"
+        : "searchV2";
+
+      axios
+        .get(`${API_URL}/${searchEndpoint}?${searchParams.toString()}`)
+        .then((response) => {
+          setMessages(response.data);
+          setSelectedChannel(null);
+          setIsLoading(false);
+          setHasSearchResults(response.data.length > 0);
+          resolve();
+        })
+        .catch((error) => {
+          console.error("Error searching messages:", error);
+          setIsLoading(false);
+          setHasSearchResults(false);
+          resolve();
+        });
+    });
+  };
 
   return (
     <div className="flex flex-col h-screen bg-gray-100">
@@ -566,7 +624,8 @@ function App() {
                 {tooltipVisible && (
                   <div className="absolute right-0 top-full mt-1 z-10">
                     <span className="bg-gray-800 text-white text-xs p-1 rounded whitespace-nowrap">
-                      Ordinamento: {sortOrder === "date" ? "Data ultimo post" : "Alfabetico"}
+                      Ordinamento:{" "}
+                      {sortOrder === "date" ? "Data ultimo post" : "Alfabetico"}
                     </span>
                   </div>
                 )}
@@ -600,13 +659,24 @@ function App() {
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Search bar toggle */}
           <div className="bg-white border-b p-2 flex justify-between items-center">
-            <button
-              onClick={toggleSearchBar}
-              className="bg-purple-600 text-white px-4 py-2 rounded-md flex items-center"
-            >
-              <Search className="mr-2" size={20} />
-              {isSearchBarExpanded ? "Nascondi ricerca" : "Mostra ricerca"}
-            </button>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={toggleSearchBar}
+                className="bg-purple-600 text-white px-4 py-2 rounded-md flex items-center"
+              >
+                <Search className="mr-2" size={20} />
+                {isSearchBarExpanded ? "Nascondi ricerca" : "Mostra ricerca"}
+              </button>
+              {selectedChannel && (
+                <button
+                  onClick={handleChatWithChannel}
+                  className="bg-purple-600 text-white px-4 py-2 rounded-md flex items-center"
+                >
+                  Chat with channel
+                  <MessageSquare className="ml-2" size={16} />
+                </button>
+              )}
+            </div>
             {!isSearchBarExpanded && (
               <div className="text-sm text-gray-500">
                 {searchQuery && `Ricerca: "${searchQuery}"`}
