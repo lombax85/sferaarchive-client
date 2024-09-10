@@ -21,7 +21,8 @@ const EXCLUDED_INACTIVE_USERS = [
   "Matrix Bridge Beta",
   "Matrix Bridge",
   "slack-archive-bot",
-  "slinky"
+  "slinky",
+  "Github",
 ];
 
 function Stats() {
@@ -356,7 +357,7 @@ function Stats() {
 
       {/* Deleted Users Section */}
       <div className="mt-8">
-        <h2 className="text-2xl font-semibold mb-4">Deleted Users</h2>
+        <h2 className="text-2xl font-semibold mb-4">Deleted/Deactivated Users</h2>
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white">
             <thead>
