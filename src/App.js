@@ -495,14 +495,16 @@ function App() {
             />
           </button>
           <div className="flex items-center space-x-2">
-            <button
-              ref={chatbotButtonRef}
-              onClick={toggleChatbot}
-              className="bg-purple-800 hover:bg-purple-600 text-white font-bold py-1 px-2 rounded flex items-center text-sm"
-            >
-              Assistant
-              <MessageSquare className="ml-1" size={16} />
-            </button>
+            {chatContext.length > 0 && (
+              <button
+                ref={chatbotButtonRef}
+                onClick={toggleChatbot}
+                className="bg-purple-800 hover:bg-purple-600 text-white font-bold py-1 px-2 rounded flex items-center text-sm"
+              >
+                Assistant
+                <MessageSquare className="ml-1" size={16} />
+              </button>
+            )}
             <button
               onClick={toggleSidebar}
               className="lg:hidden bg-purple-800 p-1 rounded"
