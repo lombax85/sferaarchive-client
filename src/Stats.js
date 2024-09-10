@@ -91,6 +91,11 @@ function Stats() {
     return users.filter(user => !EXCLUDED_INACTIVE_USERS.includes(user.real_name));
   };
 
+  // Add this function before the return statement
+  const sortUsersByName = (users) => {
+    return users.sort((a, b) => a.real_name.localeCompare(b.real_name, undefined, { sensitivity: 'base' }));
+  };
+
   if (loading) return <div>Loading...</div>;
   if (!stats) return <div>Error loading stats</div>;
 
@@ -343,7 +348,7 @@ function Stats() {
               </tr>
             </thead>
             <tbody>
-              {filterInactiveUsers(stats.inactive_users).map((user, index) => (
+              {sortUsersByName(filterInactiveUsers(stats.inactive_users)).map((user, index) => (
                 <tr key={index} className={index % 2 === 0 ? "bg-gray-100" : ""}>
                   <td className="px-4 py-2">{user.real_name}</td>
                   <td className="px-4 py-2">{user.display_name}</td>
@@ -368,7 +373,7 @@ function Stats() {
               </tr>
             </thead>
             <tbody>
-              {stats.deleted_users.map((user, index) => (
+              {sortUsersByName(stats.deleted_users).map((user, index) => (
                 <tr key={index} className={index % 2 === 0 ? "bg-gray-100" : ""}>
                   <td className="px-4 py-2">{user.real_name}</td>
                   <td className="px-4 py-2">{user.display_name}</td>
