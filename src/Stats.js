@@ -14,6 +14,16 @@ import {
 import axios from "axios";
 import { useLocation } from "react-router-dom";
 
+// Add this array at the top of the file, outside the component
+const EXCLUDED_INACTIVE_USERS = [
+  "RC Bridge",
+  "jitsi-slack-bridge",
+  "Matrix Bridge Beta",
+  "Matrix Bridge",
+  "slack-archive-bot",
+  "slinky"
+];
+
 function Stats() {
   const [stats, setStats] = useState(null);
   const [days, setDays] = useState(30);
@@ -73,6 +83,11 @@ function Stats() {
       .catch(error => {
         console.error("Error downloading users:", error);
       });
+  };
+
+  // Add this function before the return statement
+  const filterInactiveUsers = (users) => {
+    return users.filter(user => !EXCLUDED_INACTIVE_USERS.includes(user.real_name));
   };
 
   if (loading) return <div>Loading...</div>;
@@ -327,7 +342,7 @@ function Stats() {
               </tr>
             </thead>
             <tbody>
-              {stats.inactive_users.map((user, index) => (
+              {filterInactiveUsers(stats.inactive_users).map((user, index) => (
                 <tr key={index} className={index % 2 === 0 ? "bg-gray-100" : ""}>
                   <td className="px-4 py-2">{user.real_name}</td>
                   <td className="px-4 py-2">{user.display_name}</td>
