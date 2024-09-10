@@ -1,16 +1,29 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { BrowserRouter as Router, Route, Routes, Link, useLocation } from 'react-router-dom';
 import './index.css';
 import App from './App';
 import Digest from './Digest';
 import Stats from './Stats';
+import { API_URL } from "./config";
+import axios from "axios";
+
 
 // Componente per il menu di navigazione
 const Navigation = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const token = queryParams.get("token");
+
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const token = queryParams.get("token");
+    if (token) {
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    } else {
+      window.location.href = API_URL + "/login";
+    }
+  }, [location]);
 
   return (
     <nav className="bg-purple-700 p-4">
