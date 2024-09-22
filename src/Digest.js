@@ -16,7 +16,7 @@ function Digest() {
   const [podcastContent, setPodcastContent] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPodcastContentExpanded, setIsPodcastContentExpanded] = useState(false);
-  const [podcastAvailable, setPodcastAvailable] = useState(false);
+  const [podcastAvailable, setPodcastAvailable] = useState(true);
   const audioRef = useRef(null);
   const progressBarRef = useRef(null);
 
