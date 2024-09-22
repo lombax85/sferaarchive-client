@@ -50,7 +50,7 @@ function Digest() {
       })
       .catch(error => console.error("Error fetching audio:", error));
     }
-  }, [podcastContent]);
+  }, [podcastContent, podcastAvailable]);
 
   const fetchDigest = async () => {
     try {
