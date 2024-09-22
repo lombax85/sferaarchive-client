@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 import { API_URL } from './config';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 function Digest() {
   const location = useLocation();
@@ -12,7 +13,11 @@ function Digest() {
   const [query, setQuery] = useState('');
   const [details, setDetails] = useState(null);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
-
+  const [podcastContent, setPodcastContent] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPodcastContentExpanded, setIsPodcastContentExpanded] = useState(false);
+  const audioRef = useRef(null);
+  const progressBarRef = useRef(null);
 
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
@@ -21,11 +26,30 @@ function Digest() {
     if (token) {
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       fetchDigest();
+      fetchPodcastContent();
     } else {
       setError("No token provided");
       setIsLoading(false);
     }
   }, [location]);
+
+  useEffect(() => {
+    if (audioRef.current) {
+      const token = axios.defaults.headers.common["Authorization"];
+      
+      fetch(`${API_URL}/get_podcast_audio`, {
+        headers: {
+          'Authorization': token
+        }
+      })
+      .then(response => response.blob())
+      .then(blob => {
+        const url = URL.createObjectURL(blob);
+        audioRef.current.src = url;
+      })
+      .catch(error => console.error("Error fetching audio:", error));
+    }
+  }, [podcastContent]);
 
   const fetchDigest = async () => {
     try {
@@ -36,6 +60,41 @@ function Digest() {
       console.error("Error fetching digest:", error);
       setError("Failed to fetch digest");
       setIsLoading(false);
+    }
+  };
+
+  const fetchPodcastContent = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/get_podcast_content`, {});
+      setPodcastContent(response.data.podcast_content);
+    } catch (error) {
+      console.error("Error fetching podcast content:", error);
+      setError("Failed to fetch podcast content");
+    }
+  };
+
+  const togglePlayPause = () => {
+    if (audioRef.current.paused) {
+      audioRef.current.play();
+      setIsPlaying(true);
+    } else {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    if (audioRef.current && progressBarRef.current) {
+      const progress = (audioRef.current.currentTime / audioRef.current.duration) * 100;
+      progressBarRef.current.style.width = `${progress}%`;
+    }
+  };
+
+  const handleSeek = (e) => {
+    if (audioRef.current && progressBarRef.current) {
+      const bounds = e.currentTarget.getBoundingClientRect();
+      const seekPosition = (e.clientX - bounds.left) / bounds.width;
+      audioRef.current.currentTime = seekPosition * audioRef.current.duration;
     }
   };
 
@@ -77,6 +136,40 @@ function Digest() {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Digest</h1>
+      
+      {podcastContent && (
+        <div className="mt-8 mb-8">
+          <h2 className="text-xl font-bold mb-4">Podcast Version</h2>
+          <div className="bg-gray-100 p-4 rounded-lg">
+            <audio 
+              ref={audioRef}
+              onTimeUpdate={handleTimeUpdate}
+              className="w-full mb-4"
+            />
+            <div className="flex items-center mb-4">
+              <button onClick={togglePlayPause} className="bg-blue-500 text-white px-4 py-2 rounded-full mr-4">
+                {isPlaying ? 'Pause' : 'Play'}
+              </button>
+              <div className="flex-grow bg-gray-300 h-2 rounded-full cursor-pointer" onClick={handleSeek}>
+                <div ref={progressBarRef} className="bg-blue-500 h-full rounded-full"></div>
+              </div>
+            </div>
+            <div 
+              className="flex items-center cursor-pointer" 
+              onClick={() => setIsPodcastContentExpanded(!isPodcastContentExpanded)}
+            >
+              <h3 className="text-lg font-semibold mr-2">Podcast Content</h3>
+              {isPodcastContentExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            </div>
+            {isPodcastContentExpanded && (
+              <div className="prose prose-sm mt-2">
+                <ReactMarkdown>{podcastContent}</ReactMarkdown>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {digest && (
         <div>
           <p className="text-gray-600 mb-4">Period: {digest.period}</p>
