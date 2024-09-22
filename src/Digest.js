@@ -35,6 +35,10 @@ function Digest() {
   }, [location]);
 
   useEffect(() => {
+    fetchPodcastAudio();
+  }, [podcastContent, podcastAvailable]);
+
+  const fetchPodcastAudio = async () => {
     if (audioRef.current) {
       const token = axios.defaults.headers.common["Authorization"];
       
@@ -50,7 +54,7 @@ function Digest() {
       })
       .catch(error => console.error("Error fetching audio:", error));
     }
-  }, [podcastContent, podcastAvailable]);
+  }
 
   const fetchDigest = async () => {
     try {
@@ -76,6 +80,10 @@ function Digest() {
   };
 
   const togglePlayPause = () => {
+    if (!audioRef.current.src) {
+      fetchPodcastAudio();
+    }
+    
     if (audioRef.current.paused) {
       audioRef.current.play();
       setIsPlaying(true);
