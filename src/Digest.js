@@ -16,6 +16,7 @@ function Digest() {
   const [podcastContent, setPodcastContent] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPodcastContentExpanded, setIsPodcastContentExpanded] = useState(false);
+  const [podcastAvailable, setPodcastAvailable] = useState(true);
   const audioRef = useRef(null);
   const progressBarRef = useRef(null);
 
@@ -67,9 +68,10 @@ function Digest() {
     try {
       const response = await axios.get(`${API_URL}/get_podcast_content`, {});
       setPodcastContent(response.data.podcast_content);
+      setPodcastAvailable(true);
     } catch (error) {
       console.error("Error fetching podcast content:", error);
-      setError("Failed to fetch podcast content");
+      setPodcastAvailable(false);
     }
   };
 
@@ -137,7 +139,7 @@ function Digest() {
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Digest</h1>
       
-      {podcastContent && (
+      {podcastAvailable && podcastContent && (
         <div className="mt-8 mb-8">
           <h2 className="text-xl font-bold mb-4">Podcast Version</h2>
           <div className="bg-gray-100 p-4 rounded-lg">
