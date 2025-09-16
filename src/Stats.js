@@ -330,6 +330,19 @@ function Stats() {
             <Bar yAxisId="right" dataKey="avg_words_per_message" fill="#82ca9d" name="Avg Words per Message" />
           </BarChart>
         </div>
+
+        {/* Posts and Replies by Channel */}
+        <div>
+          <h2 className="text-xl font-semibold mb-2">Posts and Replies by Channel</h2>
+          <BarChart width={700} height={400} data={stats.posts_replies_by_channel}>
+            <XAxis dataKey="channel_name" angle={-45} textAnchor="end" interval={0} height={80} />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="post_count" fill="#8884d8" name="Posts" />
+            <Bar dataKey="reply_count" fill="#82ca9d" name="Replies" />
+          </BarChart>
+        </div>
       </div>
 
       {/* Separator */}
