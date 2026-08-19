@@ -11,7 +11,6 @@ import {
   Info,
   MessageSquare,
   ArrowUpDown,
-  ArrowUp,
 } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { marked } from "marked";
@@ -135,6 +134,8 @@ function App() {
     if (selectedChannel) {
       fetchMessages();
     }
+    // Refetch only when the selected channel or pagination offset changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedChannel, offset]);
 
   const replaceTags = (message) => {
@@ -281,13 +282,6 @@ function App() {
   const handleDateTimeChange = (setter) => (e) => {
     const { value } = e.target;
     setter(value);
-  };
-
-  const isValidDateTime = (dateTimeString) => {
-    const regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
-    if (!regex.test(dateTimeString)) return false;
-    const date = new Date(dateTimeString);
-    return !isNaN(date.getTime());
   };
 
   const formatTimestamp = (timestamp) => {

@@ -5,7 +5,6 @@ import { X, Send, RefreshCw, MessageSquare, Maximize2, Minimize2 } from 'lucide-
 const Chatbot = ({ position, size, onResize, onClose, messages, onSendMessage, onResetConversation, context, isMobile, isMinimized, onToggleMinimize }) => {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isRndReady, setIsRndReady] = useState(false);
   const messagesEndRef = useRef(null);
   const chatbotRef = useRef(null);
 
@@ -14,10 +13,6 @@ const Chatbot = ({ position, size, onResize, onClose, messages, onSendMessage, o
   };
 
   useEffect(scrollToBottom, [messages]);
-
-  useEffect(() => {
-    setIsRndReady(true);
-  }, []);
 
   const handleSendMessage = async () => {
     if (inputMessage.trim() === '') return;
