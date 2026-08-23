@@ -12,7 +12,8 @@ import {
   Cell
 } from "recharts";
 import axios from "axios";
-import { useLocation } from "react-router-dom";
+import { buildArchiveSearch } from "./auth";
+import { useAdminAccess } from "./adminAccess";
 
 // Add this array at the top of the file, outside the component
 const EXCLUDED_INACTIVE_USERS = [
@@ -25,50 +26,61 @@ const EXCLUDED_INACTIVE_USERS = [
   "GitHub",
 ];
 
+export function buildStatsArchiveThreadUrl(
+  thread,
+  origin = window.location.origin
+) {
+  try {
+    const search = buildArchiveSearch({
+      channel: thread?.channel_id,
+      threadTs: thread?.thread_ts,
+      messageTs: thread?.thread_ts,
+    });
+    const url = new URL("/", origin);
+    url.search = search.slice(1);
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
 function Stats() {
+  const {
+    isAdmin,
+    isLoading: isCheckingAdmin,
+    message: adminAccessMessage,
+  } = useAdminAccess();
   const [stats, setStats] = useState(null);
   const [days, setDays] = useState(30);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const location = useLocation();
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const queryParams = new URLSearchParams(location.search);
-    const token = queryParams.get("token");
+    if (!isAdmin) return;
+
     setLoading(true);
+    setError(null);
 
-    if (token) {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      
-      // Fetch user info to check if admin
-      axios.get(`${API_URL}/whoami`)
-        .then(response => {
-          setIsAdmin(response.data.is_admin);
-        })
-        .catch(error => {
-          console.error("Error fetching user info:", error);
-        });
-
-      axios.get(`${API_URL}/stats?days=${days}`, {})
-        .then((response) => response.data)
-        .then((data) => {
-          setStats(data);
-          setLoading(false);
-        })
-        .catch((error) => {
-          console.error("Error fetching stats:", error);
-          setLoading(false);
-        });
-    } else {
-      setLoading(false);
-    }
-  }, [location, days]);
+    axios.get(`${API_URL}/stats?days=${days}`, {})
+      .then((response) => response.data)
+      .then((data) => {
+        setStats(data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching stats:", error);
+        setError("Impossibile caricare le statistiche.");
+        setLoading(false);
+      });
+  }, [days, isAdmin]);
 
   const handleDaysChange = (event) => {
     setDays(parseInt(event.target.value));
   };
 
   const handleDownloadUsers = () => {
+    if (!isAdmin) return;
+
     axios.get(`${API_URL}/download_users`)
       .then(response => {
         const csvContent = response.data.csv;
@@ -96,8 +108,12 @@ function Stats() {
     return users.sort((a, b) => a.real_name.localeCompare(b.real_name, undefined, { sensitivity: 'base' }));
   };
 
+  if (isCheckingAdmin) {
+    return <div>Verifica dei permessi amministrativi...</div>;
+  }
+  if (!isAdmin) return <div role="alert">{adminAccessMessage}</div>;
   if (loading) return <div>Loading...</div>;
-  if (!stats) return <div>Error loading stats</div>;
+  if (error || !stats) return <div role="alert">{error || "Error loading stats"}</div>;
 
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
 
@@ -275,8 +291,8 @@ function Stats() {
             onClick={(data) => {
               if (data && data.activePayload && data.activePayload[0]) {
                 const thread = data.activePayload[0].payload;
-                const url = `https://slack-archive.sferait.org/getlink?timestamp=${thread.thread_ts}`;
-                window.open(url, '_blank');
+                const url = buildStatsArchiveThreadUrl(thread);
+                if (url) window.open(url, '_blank', 'noopener,noreferrer');
               }
             }}
           >
@@ -290,7 +306,11 @@ function Stats() {
                     <div className="bg-white p-2 border rounded shadow">
                       <p>Author: {thread.author}</p>
                       <p>Reply Count: {thread.reply_count}</p>
-                      <p className="text-blue-500 cursor-pointer">Click to open thread</p>
+                      <p className="text-blue-500 cursor-pointer">
+                        {buildStatsArchiveThreadUrl(thread)
+                          ? "Click to open thread"
+                          : "Archive link unavailable"}
+                      </p>
                     </div>
                   );
                 }

@@ -1,57 +1,41 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
-import { BrowserRouter as Router, Route, Routes, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import './index.css';
 import App from './App';
 import Digest from './Digest';
 import Stats from './Stats';
 import { API_URL } from "./config";
 import axios from "axios";
+import {
+  bootstrapAuth,
+  buildLoginUrl,
+  installAxiosUnauthorizedHandler,
+} from "./auth";
+import Navigation from "./Navigation";
+import { AdminAccessProvider } from "./adminAccess";
 
+const auth = bootstrapAuth();
 
-// Componente per il menu di navigazione
-const Navigation = () => {
-  const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
-  const token = queryParams.get("token");
+if (!auth.token) {
+  window.location.replace(buildLoginUrl(API_URL, auth.returnTo));
+} else {
+  axios.defaults.headers.common["Authorization"] = `Bearer ${auth.token}`;
+  installAxiosUnauthorizedHandler({ axiosClient: axios, apiUrl: API_URL });
 
-  useEffect(() => {
-    const queryParams = new URLSearchParams(location.search);
-    const token = queryParams.get("token");
-    if (token) {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    } else {
-      window.location.href = API_URL + "/login";
-    }
-  }, [location]);
-
-  return (
-    <nav className="bg-purple-700 p-4">
-      <ul className="flex space-x-4">
-        <li>
-          <Link to={`/?token=${token}`} className="text-white hover:text-purple-200">Home</Link>
-        </li>
-        <li>
-          <Link to={`/digest?token=${token}`} className="text-white hover:text-purple-200">Digest</Link>
-        </li>
-        <li>
-          <Link to={`/stats?token=${token}`} className="text-white hover:text-purple-200">Stats</Link>
-        </li>
-      </ul>
-    </nav>
+  ReactDOM.render(
+    <React.StrictMode>
+      <Router>
+        <AdminAccessProvider>
+          <Navigation />
+          <Routes>
+            <Route path="/" element={<App />} />
+            <Route path="/digest" element={<Digest />} />
+            <Route path="/stats" element={<Stats />} />
+          </Routes>
+        </AdminAccessProvider>
+      </Router>
+    </React.StrictMode>,
+    document.getElementById('root')
   );
-};
-
-ReactDOM.render(
-  <React.StrictMode>
-    <Router>
-      <Navigation />
-      <Routes>
-        <Route path="/" element={<App />} />
-        <Route path="/digest" element={<Digest />} />
-        <Route path="/stats" element={<Stats />} />
-      </Routes>
-    </Router>
-  </React.StrictMode>,
-  document.getElementById('root')
-);
+}

@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
 import axios from "axios";
 import {
   Hash,
@@ -13,12 +19,22 @@ import {
   ArrowUpDown,
 } from "lucide-react";
 import { useLocation } from "react-router-dom";
-import { marked } from "marked";
 import parse from "html-react-parser";
 import "./App.css";
-import emojiDatasource from "https://cdn.jsdelivr.net/npm/emoji-datasource@15.1.2/+esm";
+import emojiDatasource from "emoji-datasource/emoji.json";
 import { API_URL } from "./config";
 import Chatbot from "./components/Chatbot";
+import {
+  buildThreadApiPath,
+  isValidSlackTimestamp,
+  parseArchiveDeepLink,
+} from "./auth";
+import {
+  escapeHtml,
+  isSafeSlackPermalink,
+  sanitizeSlackMarkup,
+} from "./slackMarkup";
+import { buildArchiveContextRefs } from "./chatContext";
 
 function App() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -32,11 +48,15 @@ function App() {
   const [offset, setOffset] = useState(0);
   const [selectedThread, setSelectedThread] = useState(null);
   const [threadMessages, setThreadMessages] = useState([]);
-  const [accessToken, setAccessToken] = useState(null);
+  const [selectedMessageTs, setSelectedMessageTs] = useState(null);
   const [user, setUser] = useState(null);
   const [username, setUserName] = useState(null);
   const [optedOut, setOptedOut] = useState(false);
   const location = useLocation();
+  const archiveDeepLink = useMemo(
+    () => parseArchiveDeepLink(location.search),
+    [location.search]
+  );
   const [isAccordionOpen, setIsAccordionOpen] = useState(false);
   const [emoji, setEmoji] = useState([]);
   const [emojiDatasourceMap, setEmojiDatasourceMap] = useState({});
@@ -52,6 +72,8 @@ function App() {
   const [chatbotPosition, setChatbotPosition] = useState({ x: 0, y: 0 });
   const [chatbotSize, setChatbotSize] = useState({ width: 300, height: 400 });
   const chatbotButtonRef = useRef(null);
+  const highlightedMessageRef = useRef(null);
+  const requestedDeepLinkRef = useRef("");
   const [chatMessages, setChatMessages] = useState([
     {
       user_name: "AI",
@@ -77,58 +99,46 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const queryParams = new URLSearchParams(location.search);
-    const token = queryParams.get("token");
-    if (token) {
-      setAccessToken(token);
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    }
-  }, [location]);
+    axios
+      .get(API_URL + "/channels")
+      .then((response) => setChannels(response.data))
+      .catch((error) => console.error("Error fetching channels:", error));
 
-  useEffect(() => {
-    if (accessToken) {
-      axios
-        .get(API_URL + "/channels")
-        .then((response) => setChannels(response.data))
-        .catch((error) => console.error("Error fetching channels:", error));
+    axios
+      .get(API_URL + "/users")
+      .then((response) => {
+        const userAvatars = {};
+        response.data.forEach((archiveUser) => {
+          userAvatars[archiveUser.name] = archiveUser.avatar;
+        });
+        setAvatars(userAvatars);
+        setUserlist(response.data);
+      })
+      .catch((error) => console.error("Error fetching users:", error));
 
-      axios
-        .get(API_URL + "/users")
-        .then((response) => {
-          let avatars = {};
-          response.data.forEach((user) => {
-            avatars[user.name] = user.avatar;
-          });
-          setAvatars(avatars);
-          setUserlist(response.data);
-        })
-        .catch((error) => console.error("Error fetching users:", error));
+    axios
+      .get(API_URL + "/emoji")
+      .then((response) => setEmoji(response.data.emoji))
+      .catch((error) => console.error("Error fetching emoji:", error));
 
-      axios
-        .get(API_URL + "/emoji")
-        .then((response) => setEmoji(response.data.emoji))
-        .catch((error) => console.error("Error fetching emoji:", error));
+    const emojiMap = emojiDatasource.reduce((acc, emojiEntry) => {
+      if (emojiEntry.short_name) {
+        acc[emojiEntry.short_name] = emojiEntry.unified;
+      }
+      return acc;
+    }, {});
+    setEmojiDatasourceMap(emojiMap);
 
-      // Create a map of emoji shortnames to unicode characters
-      const emojiMap = emojiDatasource.reduce((acc, emoji) => {
-        if (emoji.short_name) {
-          acc[emoji.short_name] = emoji.unified;
-        }
-        return acc;
-      }, {});
-      setEmojiDatasourceMap(emojiMap);
-
-      axios
-        .get(API_URL + "/whoami")
-        .then((response) => {
-          setUser(response.data.user_id);
-          setUserName(response.data.username);
-          setOptedOut(response.data.opted_out);
-          setAiOptedOut(response.data.opted_out_ai);
-        })
-        .catch((error) => console.error("Error fetching whoami:", error));
-    }
-  }, [accessToken]);
+    axios
+      .get(API_URL + "/whoami")
+      .then((response) => {
+        setUser(response.data.user_id);
+        setUserName(response.data.username);
+        setOptedOut(response.data.opted_out);
+        setAiOptedOut(response.data.opted_out_ai);
+      })
+      .catch((error) => console.error("Error fetching whoami:", error));
+  }, []);
 
   useEffect(() => {
     if (selectedChannel) {
@@ -139,40 +149,42 @@ function App() {
   }, [selectedChannel, offset]);
 
   const replaceTags = (message) => {
-    let emojiKeys = Object.keys(emoji);
-    let emojiValues = Object.values(emoji);
+    const emojiKeys = Object.keys(emoji);
+    const emojiValues = Object.values(emoji);
+    let renderedMessage = String(message.message || "");
 
     // Replace emoji using custom emoji from slack
     for (let i = 0; i < emojiKeys.length; i++) {
-      if (message.message.includes(":" + emojiKeys[i] + ":")) {
-        const emojiImgTag = `<img src='${emojiValues[i]}' alt='${emojiKeys[i]}' class='emoji' />`;
-        const regex = new RegExp(":" + emojiKeys[i] + ":", "g");
-        message.message = message.message.replace(regex, emojiImgTag);
+      const shortcode = `:${emojiKeys[i]}:`;
+      if (renderedMessage.includes(shortcode)) {
+        const emojiImgTag = `<img src="${escapeHtml(
+          emojiValues[i]
+        )}" alt="${escapeHtml(emojiKeys[i])}" class="emoji" />`;
+        renderedMessage = renderedMessage.split(shortcode).join(emojiImgTag);
       }
     }
 
     // Replace emoji using emoji-datasource
     Object.keys(emojiDatasourceMap).forEach((shortName) => {
-      const regex = new RegExp(`:${shortName}:`, "g");
-      const unicodeEmoji = String.fromCodePoint(
-        parseInt(emojiDatasourceMap[shortName], 16)
-      );
-      message.message = message.message.replace(regex, unicodeEmoji);
+      const shortcode = `:${shortName}:`;
+      const unicodeEmoji = emojiDatasourceMap[shortName]
+        .split("-")
+        .map((codePoint) => String.fromCodePoint(parseInt(codePoint, 16)))
+        .join("");
+      renderedMessage = renderedMessage.split(shortcode).join(unicodeEmoji);
     });
 
     // replace user id with username
-    userlist.forEach((user) => {
-      const toReplace = `<@${user.id}>`;
-      if (message.message.includes(toReplace)) {
-        const regex = new RegExp(toReplace, "g");
-        message.message = message.message.replace(
-          regex,
-          `<b>@${user.name}</b>`
-        );
+    userlist.forEach((archiveUser) => {
+      const toReplace = `<@${archiveUser.id}>`;
+      if (renderedMessage.includes(toReplace)) {
+        renderedMessage = renderedMessage
+          .split(toReplace)
+          .join(`<b>@${escapeHtml(archiveUser.name)}</b>`);
       }
     });
 
-    return message;
+    return { ...message, message: renderedMessage };
   };
 
   const fetchMessages = () => {
@@ -207,21 +219,60 @@ function App() {
     }
   };
 
-  const handleThreadSelect = (threadTs) => {
-    if (threadTs) {
-      setSelectedThread(threadTs);
-      axios
-        .get(`${API_URL}/thread/${threadTs}`)
-        .then((response) => {
-          setThreadMessages(
-            response.data.map((message) => replaceTags(message))
-          );
-        })
-        .catch((error) =>
-          console.error("Error fetching thread messages:", error)
-        );
+  const handleThreadSelect = useCallback((channelId, threadTs, messageTs) => {
+    const deepLink = {
+      channel: channelId,
+      threadTs,
+      messageTs: messageTs || threadTs,
+    };
+
+    if (!isValidSlackTimestamp(deepLink.messageTs)) {
+      return Promise.resolve(false);
     }
-  };
+
+    let threadPath;
+    try {
+      threadPath = buildThreadApiPath(deepLink);
+    } catch {
+      return Promise.resolve(false);
+    }
+
+    setSelectedChannel(channelId);
+    setSelectedThread(threadTs);
+    setSelectedMessageTs(deepLink.messageTs);
+
+    return axios
+      .get(`${API_URL}${threadPath}`)
+      .then((response) => {
+        setThreadMessages(response.data);
+        return true;
+      })
+      .catch((error) => {
+        console.error("Error fetching thread messages:", error);
+        return false;
+      });
+  }, []);
+
+  useEffect(() => {
+    if (!archiveDeepLink) return;
+    const requestKey = `${archiveDeepLink.channel}:${archiveDeepLink.threadTs}:${archiveDeepLink.messageTs}`;
+    if (requestedDeepLinkRef.current === requestKey) return;
+    requestedDeepLinkRef.current = requestKey;
+    handleThreadSelect(
+      archiveDeepLink.channel,
+      archiveDeepLink.threadTs,
+      archiveDeepLink.messageTs
+    );
+  }, [archiveDeepLink, handleThreadSelect]);
+
+  useEffect(() => {
+    if (threadMessages.length > 0 && highlightedMessageRef.current) {
+      highlightedMessageRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [threadMessages, selectedMessageTs]);
 
   const handleOptOut = () => {
     if (
@@ -375,7 +426,7 @@ function App() {
     try {
       const response = await axios.post(`${API_URL}/chat`, {
         message: inputMessage,
-        context: chatContext,
+        context_refs: buildArchiveContextRefs(chatContext),
         conversation: [...chatMessages, newMessage],
       });
 
@@ -409,6 +460,8 @@ function App() {
     const threadContext = threadMessages.map((msg) => ({
       user_name: msg.user_name,
       message: msg.message,
+      channel: msg.channel || selectedChannel,
+      timestamp: msg.timestamp || msg.ts,
     }));
 
     setChatContext(threadContext);
@@ -431,6 +484,8 @@ function App() {
     const searchResultsContext = messages.map((msg) => ({
       user_name: msg.user_name,
       message: msg.message,
+      channel: msg.channel || msg.channel_id,
+      timestamp: msg.timestamp || msg.ts,
     }));
 
     setChatContext(searchResultsContext);
@@ -819,14 +874,20 @@ function App() {
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4" onScroll={handleScroll}>
-            {messages.map((message) => (
-              <div
-                key={message.timestamp}
-                className="mb-4 cursor-pointer hover:bg-gray-200 p-2 rounded flex items-start transition-colors duration-200"
-                onClick={() =>
-                  handleThreadSelect(message.thread_ts || message.timestamp)
-                }
-              >
+            {messages.map((message) => {
+              const renderedMessage = replaceTags(message);
+              return (
+                <div
+                  key={message.timestamp}
+                  className="mb-4 cursor-pointer hover:bg-gray-200 p-2 rounded flex items-start transition-colors duration-200"
+                  onClick={() =>
+                    handleThreadSelect(
+                      message.channel || selectedChannel,
+                      message.thread_ts || message.timestamp,
+                      message.timestamp
+                    )
+                  }
+                >
                 <div className="flex-shrink-0 mr-3">
                   {avatars[message.user_name] ? (
                     <img
@@ -841,7 +902,7 @@ function App() {
                 <div className="flex-grow">
                   <div className="font-semibold">{message.user_name}</div>
                   <div className="whitespace-pre-wrap parsed-content">
-                    {parse(marked(message.message))}
+                    {parse(sanitizeSlackMarkup(renderedMessage.message))}
                   </div>
                   <div className="text-xs text-gray-500 mt-1 flex items-center">
                     <span>{formatTimestamp(message.timestamp)}</span>
@@ -853,8 +914,9 @@ function App() {
                     )}
                   </div>
                 </div>
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -874,15 +936,28 @@ function App() {
                 <ChevronDown
                   className="cursor-pointer"
                   size={20}
-                  onClick={() => setSelectedThread(null)}
+                  onClick={() => {
+                    setSelectedThread(null);
+                    setSelectedMessageTs(null);
+                  }}
                 />
               </div>
             </div>
-            {threadMessages.map((thread) => (
-              <div
-                key={thread.timestamp + "_thread"}
-                className="mb-4 flex items-start p-2 rounded hover:bg-gray-100 transition-colors duration-200"
-              >
+            {threadMessages.map((thread) => {
+              const renderedThread = replaceTags(thread);
+              const isHighlighted = thread.timestamp === selectedMessageTs;
+              return (
+                <div
+                  key={thread.timestamp + "_thread"}
+                  ref={isHighlighted ? highlightedMessageRef : null}
+                  data-testid={`thread-message-${thread.timestamp}`}
+                  data-highlighted={isHighlighted ? "true" : "false"}
+                  className={`mb-4 flex items-start p-2 rounded transition-colors duration-200 ${
+                    isHighlighted
+                      ? "bg-yellow-100 ring-2 ring-yellow-400"
+                      : "hover:bg-gray-100"
+                  }`}
+                >
                 <div className="flex-shrink-0 mr-3">
                   {avatars[thread.user_name] ? (
                     <img
@@ -897,12 +972,12 @@ function App() {
                 <div className="flex-grow">
                   <div className="font-semibold">{thread.user_name}</div>
                   <div className="whitespace-pre-wrap parsed-content">
-                    {parse(marked(thread.message))}
+                    {parse(sanitizeSlackMarkup(renderedThread.message))}
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
                     {formatTimestamp(thread.timestamp)}
                   </div>
-                  {thread.permalink && (
+                  {isSafeSlackPermalink(thread.permalink) && (
                     <a
                       href={thread.permalink}
                       target="_blank"
@@ -914,8 +989,9 @@ function App() {
                     </a>
                   )}
                 </div>
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

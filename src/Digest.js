@@ -1,12 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 import { API_URL } from './config';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { useAdminAccess } from './adminAccess';
 
 function Digest() {
-  const location = useLocation();
+  const {
+    isAdmin,
+    isLoading: isCheckingAdmin,
+    message: adminAccessMessage,
+  } = useAdminAccess();
   const [digest, setDigest] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -21,38 +25,32 @@ function Digest() {
   const progressBarRef = useRef(null);
 
   useEffect(() => {
-    const queryParams = new URLSearchParams(location.search);
-    const token = queryParams.get("token");
+    if (!isAdmin) return;
 
-    if (token) {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      fetchDigest();
-      fetchPodcastContent();
-    } else {
-      setError("No token provided");
-      setIsLoading(false);
-    }
-  }, [location]);
+    setIsLoading(true);
+    setError(null);
+    fetchDigest();
+    fetchPodcastContent();
+    // Admin access is checked before privileged endpoints are called.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin]);
 
   useEffect(() => {
-    fetchPodcastAudio();
-  }, [podcastContent, podcastAvailable]);
+    if (isAdmin && podcastContent && podcastAvailable) fetchPodcastAudio();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin, podcastContent, podcastAvailable]);
 
   const fetchPodcastAudio = async () => {
-    if (audioRef.current) {
-      const token = axios.defaults.headers.common["Authorization"];
-      
-      fetch(`${API_URL}/get_podcast_audio`, {
-        headers: {
-          'Authorization': token
-        }
-      })
-      .then(response => response.blob())
-      .then(blob => {
-        const url = URL.createObjectURL(blob);
-        audioRef.current.src = url;
-      })
-      .catch(error => console.error("Error fetching audio:", error));
+    if (!isAdmin || !audioRef.current) return;
+
+    try {
+      const response = await axios.get(`${API_URL}/get_podcast_audio`, {
+        responseType: 'blob'
+      });
+      const url = URL.createObjectURL(response.data);
+      audioRef.current.src = url;
+    } catch (error) {
+      console.error("Error fetching audio:", error);
     }
   }
 
@@ -80,6 +78,8 @@ function Digest() {
   };
 
   const togglePlayPause = () => {
+    if (!isAdmin) return;
+
     if (!audioRef.current.src) {
       fetchPodcastAudio();
     }
@@ -108,6 +108,14 @@ function Digest() {
     }
   };
 
+  if (isCheckingAdmin) {
+    return <div>Verifica dei permessi amministrativi...</div>;
+  }
+
+  if (!isAdmin) {
+    return <div role="alert">{adminAccessMessage}</div>;
+  }
+
   if (isLoading) {
     return <div>Genero il digest...la prima generazione delle ultime 24h può richiedere qualche minuto, non abbandonare la pagina</div>;
   }
@@ -118,6 +126,7 @@ function Digest() {
 
   const handleQuerySubmit = async (e) => {
     e.preventDefault();
+    if (!isAdmin) return;
     setIsLoadingDetails(true);
     try {
       const response = await axios.post(`${API_URL}/digest_details`, { query });
@@ -131,6 +140,7 @@ function Digest() {
   };
 
   const handleGenerateAgain = () => {
+    if (!isAdmin) return;
     setIsLoading(true);
     axios.post(`${API_URL}/generate_digest`, { force_generate: true })
       .then(response => {

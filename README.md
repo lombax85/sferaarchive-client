@@ -4,8 +4,8 @@ Sfera IT Archive Client è un'applicazione web per la gestione e la consultazion
 
 ## Requisiti
 
-- Node.js (versione 14 o superiore)
-- npm (versione 6 o superiore) o yarn
+- Node.js 24.x
+- npm 11 o compatibile con il lockfile
 
 ## Installazione
 
@@ -32,37 +32,35 @@ npm start
 
 Apri [http://localhost:3000](http://localhost:3000) nel tuo browser per visualizzarla. La pagina si ricaricherà automaticamente quando apporti modifiche al codice.
 
-## Token
+## Autenticazione e deep link
 
-Un token JWT può essere ottenuto dalla versione di produzione dell'applicazione. Segui questi passaggi per ottenerlo e utilizzarlo per il debug:
+Il callback OAuth consegna il JWT nel fragment `#token=...`. Il client lo copia in
+`sessionStorage` (quindi resta limitato alla scheda) e rimuove immediatamente il
+fragment dalla cronologia. Il vecchio parametro query `?token=...` è accettato solo
+come compatibilità di migrazione ed è rimosso nello stesso modo. I link di
+navigazione e i permalink dell'archivio non devono mai contenere il token.
 
-1. Accedi alla versione di produzione dell'applicazione.
-2. Effettua il login per generare un token JWT.
-3. Copia il token JWT dall'URL o dagli strumenti di sviluppo del browser.
-4. Apri il file `launch.json` nel tuo progetto.
-5. Inserisci il token JWT copiato nel campo appropriato per poter debuggare l'applicazione localmente.
+Un messaggio archiviato è raggiungibile con un deep link privo di credenziali:
 
-Esempio di configurazione in `launch.json`:
-
-```json
-{
-  "version": "0.2.0",
-  "configurations": [
-      {
-          "type": "chrome",
-          "request": "launch",
-          "name": "Debug React Run",
-          "url": "http://localhost:3000?token=INSERISCI_IL_TOKEN_QUI",
-          "webRoot": "${workspaceFolder}/src",
-          "runtimeArgs": [
-        "--disable-web-security",
-      ],
-      }
-  ]
-}
+```text
+https://sferaarchive-client.vercel.app/?channel=C0BSUCGHU8G&thread_ts=1787395457.104349&message_ts=1787395460.204349
 ```
 
-In questo modo, il token JWT verrà utilizzato durante il debug dell'applicazione. 
+Se la sessione non è autenticata, il client invia al backend un `return_to`
+relativo e validato. Dopo OAuth il deep link viene ripristinato, il thread è
+caricato tramite l'endpoint channel-scoped e il messaggio richiesto è evidenziato.
+Non copiare JWT in configurazioni di debug, issue o log.
+
+Le risposte del bot espongono sia il permalink Slack sia questo link durevole.
+Il backend verifica nuovamente l'appartenenza ai canali privati prima di restituire
+il thread, quindi il deep link non costituisce un'autorizzazione.
+
+## Verifiche automatiche
+
+La CI esegue installazione dal lockfile, test, audit delle sole dipendenze runtime
+e build production senza source map. La toolchain Create React App rimane legacy:
+gli advisory transitivi confinati agli strumenti di sviluppo non vengono ignorati,
+ma non bloccano il deploy finché `npm audit --omit=dev` resta pulito.
 
 
 ## Deployment
@@ -75,4 +73,3 @@ Per effettuare il deployment dell'applicazione, è necessario seguire questi pas
 L'applicazione sarà disponibile online all'indirizzo: [https://sferaarchive-client.vercel.app/](https://sferaarchive-client.vercel.app/)
 
 Il processo di deployment è gestito automaticamente da Vercel.
-
