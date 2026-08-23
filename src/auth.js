@@ -48,21 +48,11 @@ export function isValidJwt(
 ) {
   const payload = readJwtPayload(token);
   const claimNames = payload ? Object.keys(payload).sort() : [];
-  // Temporary rollout compatibility: v2.1.1 signed a third `slack_token`
-  // claim. The frontend never reads that claim and strips the URL immediately;
-  // this branch exists only so the backend can be upgraded without a login loop.
-  const acceptedClaims =
-    (claimNames.length === 2 &&
-      claimNames[0] === "exp" &&
-      claimNames[1] === "user_id") ||
-    (claimNames.length === 3 &&
-      claimNames[0] === "exp" &&
-      claimNames[1] === "slack_token" &&
-      claimNames[2] === "user_id" &&
-      typeof payload.slack_token === "string");
   return Boolean(
     payload &&
-      acceptedClaims &&
+      claimNames.length === 2 &&
+      claimNames[0] === "exp" &&
+      claimNames[1] === "user_id" &&
       typeof payload.user_id === "string" &&
       SLACK_USER_ID_PATTERN.test(payload.user_id) &&
       typeof payload.exp === "number" &&

@@ -132,11 +132,11 @@ test("accepts only unexpired JWTs with valid Slack user claims", () => {
       makeToken({
         user_id: "U123",
         exp: 4102444800,
-        slack_token: "legacy-transition-value-never-read",
+        slack_token: "legacy-claim-must-be-rejected",
       }),
       2000000000
     )
-  ).toBe(true);
+  ).toBe(false);
 });
 
 test("removes an expired stored JWT during bootstrap", () => {
